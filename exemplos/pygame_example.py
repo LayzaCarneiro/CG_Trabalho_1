@@ -7,7 +7,7 @@ largura, altura = 400, 300
 tela = pygame.display.set_mode((largura, altura))
 pygame.display.set_caption("Pink Floyd Capa")
 
-def setPixel(superficie, x, y, cor):
+def set_pixel(superficie, x, y, cor):
     if 0 <= x < superficie.get_width() and 0 <= y < superficie.get_height():
         superficie.set_at((x, y), cor)
 
@@ -22,7 +22,7 @@ def desenha_linha(superficie, x1, y1, x2, y2, cor):
     erro = dx - dy
 
     while True:
-        setPixel(superficie, x1, y1, cor)
+        set_pixel(superficie, x1, y1, cor)
 
         if x1 == x2 and y1 == y2:
             break
@@ -52,7 +52,7 @@ def desenhar_seno(superficie, cor):
         fase = pygame.time.get_ticks() * 0.005
         y = centro_y - int(math.sin(x * frequencia + fase) * amplitude)
 
-        setPixel(superficie, x, y, cor)
+        set_pixel(superficie, x, y, cor)
 
 rodando = True
 while rodando:
@@ -62,10 +62,10 @@ while rodando:
 
     tela.fill((0, 0, 0))
 
-    setPixel(tela, 200, 150, (255, 0, 0))
-    setPixel(tela, 210, 150, (0, 255, 0))
-    setPixel(tela, 220, 150, (0, 0, 255))
-    setPixel(tela, 230, 150, (255, 255, 0))
+    set_pixel(tela, 200, 150, (255, 0, 0))
+    set_pixel(tela, 210, 150, (0, 255, 0))
+    set_pixel(tela, 220, 150, (0, 0, 255))
+    set_pixel(tela, 230, 150, (255, 255, 0))
 
     p1 = (200, 50)
     p2 = (100, 200)

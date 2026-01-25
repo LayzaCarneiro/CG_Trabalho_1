@@ -1,10 +1,5 @@
+from engine.framebuffer import set_pixel
 
-
-def setPixel(superficie, x, y, color):
-    if 0 <= x < superficie.get_width() and 0 <= y < superficie.get_height():
-        superficie.set_at((x, y), color)
-        
-        
 # =========================
 # Scanline Fill
 # =========================
@@ -49,4 +44,4 @@ def scanline_fill(superficie, pontos, cor_preenchimento):
                 x_fim = int(round(intersecoes_x[i + 1]))
 
                 for x in range(x_inicio, x_fim + 1):
-                    setPixel(superficie, x, y, cor_preenchimento)
+                    set_pixel(superficie, x, y, cor_preenchimento)

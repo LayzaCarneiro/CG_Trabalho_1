@@ -1,7 +1,11 @@
 import pygame
 import sys
-import engine.raster.line as rt
-import engine.fill.scanline
+from engine.framebuffer import set_pixel
+from engine.fill.flood_fill import flood_fill_iterativo
+from engine.raster.line import bresenham
+from engine.raster.line import desenhar_poligono
+from engine.raster.circle import draw_circle
+from engine.raster.elipse import draw_elipse
 
 pygame.init()
 largura, altura = 400, 300
@@ -18,23 +22,10 @@ while rodando:
     tela.fill((0, 0, 0))
 
     # testes
+    tela.fill((255, 255, 255))
 
-    # Borda branca
-    triangulo = [
-        (200, 60),
-        (300, 200),
-        (100, 200)
-    ]
-
-    # Desenha borda
-    for i in range(len(triangulo)):
-        x0, y0 = triangulo[i]
-        x1, y1 = triangulo[(i + 1) % len(triangulo)]
-        rt.bresenham(tela, x0, y0, x1, y1, (255, 255, 255))
-
-    # Preenche
-    engine.fill.scanline.scanline_fill(tela, triangulo, (0, 0, 255))
-
+    draw_elipse(tela, 300, 200, 150, 80, (0, 0, 0))
+    flood_fill_iterativo(tela, 300, 200, (0, 150, 255), (0, 0, 0))
 
 
     pygame.display.flip()

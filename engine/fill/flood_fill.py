@@ -1,3 +1,5 @@
+from engine.framebuffer import set_pixel
+
 # =========================
 # Flood Fill (4-conectado)
 # =========================
@@ -19,7 +21,7 @@ def flood_fill_iterativo(superficie, x, y, cor_preenchimento, cor_borda):
         if cor_atual == cor_borda or cor_atual == cor_preenchimento:
             continue
 
-        setPixel(superficie, x, y, cor_preenchimento)
+        set_pixel(superficie, x, y, cor_preenchimento)
 
         pilha.append((x + 1, y))
         pilha.append((x - 1, y))
