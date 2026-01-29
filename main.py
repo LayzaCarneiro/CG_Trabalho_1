@@ -1,6 +1,6 @@
 import pygame  # type: ignore
 import sys
-from app.scenes.menu import run_menu
+from app.scenes.intro import run_intro
 import app.scenes.jangada2 as jangada2
 
 
@@ -10,14 +10,13 @@ def main():
     tela = pygame.display.set_mode((largura, altura))
     pygame.display.set_caption("Jangada das Estrelas")
 
-    resultado = run_menu(tela)
+    resultado = run_intro(tela)
 
     if resultado == "sair":
         pygame.quit()
         sys.exit(0)
 
     if resultado == "iniciar":
-        # Fecha o contexto atual do Pygame e delega para o gameplay da jangada
         pygame.quit()
         jangada2.main()
         return
