@@ -13,6 +13,8 @@ from engine.framebuffer import set_pixel
 from engine.raster.line import bresenham, desenhar_poligono
 from engine.fill.scanline import scanline_fill, scanline_fill_gradiente
 from engine.math.auxiliary import interpolar_cor
+from engine.clipping.cohen_sutherland import cohen_sutherland_clip
+from engine.raster.line import bresenham
 
 def draw_raft(superficie, x, y):
     """
