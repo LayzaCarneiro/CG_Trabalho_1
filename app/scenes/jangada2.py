@@ -344,66 +344,122 @@ def check_collision_obstacle(raft_x, raft_y, obs_x, obs_y):
         raft_top > obs_bottom
     )
 
+def draw_minimap(
+    superficie,
+    raft_x, raft_y,
+    fish_x, fish_y,
+    obstaculos,
+    camera_x, camera_y,
+    WORLD_WIDTH, WORLD_HEIGHT,
+    WIDTH, HEIGHT
+):
+    # Tamanho do minimapa
+    MAP_W = 180
+    MAP_H = 180
+    MAP_X = WIDTH - MAP_W - 15
+    MAP_Y = 15
+
+    # Fundo
+    for y in range(MAP_H):
+        for x in range(MAP_W):
+            set_pixel(superficie, MAP_X + x, MAP_Y + y, (20, 40, 60))
+
+    # Escala mundo → minimapa
+    sx = MAP_W / WORLD_WIDTH
+    sy = MAP_H / WORLD_HEIGHT
+
+    # ===== VIEWPORT (retângulo da câmera) =====
+    vx = int(camera_x * sx)
+    vy = int(camera_y * sy)
+    vw = int(WIDTH * sx)
+    vh = int(HEIGHT * sy)
+
+    # Contorno do viewport
+    for i in range(vw):
+        set_pixel(superficie, MAP_X + vx + i, MAP_Y + vy, (255, 255, 255))
+        set_pixel(superficie, MAP_X + vx + i, MAP_Y + vy + vh, (255, 255, 255))
+
+    for i in range(vh):
+        set_pixel(superficie, MAP_X + vx, MAP_Y + vy + i, (255, 255, 255))
+        set_pixel(superficie, MAP_X + vx + vw, MAP_Y + vy + i, (255, 255, 255))
+
+    # ===== PEIXE =====
+    px = int(fish_x * sx)
+    py = int(fish_y * sy)
+    set_pixel(superficie, MAP_X + px, MAP_Y + py, color.FISH_BLUE)
+
+    # ===== OBSTÁCULOS =====
+    for obs in obstaculos:
+        ox = int(obs[0] * sx)
+        oy = int(obs[1] * sy)
+        set_pixel(superficie, MAP_X + ox, MAP_Y + oy, (120, 120, 120))
+
+    # ===== JANGADA (PLAYER) =====
+    rx = int(raft_x * sx)
+    ry = int(raft_y * sy)
+
+    for dy in range(-2, 3):
+        for dx in range(-2, 3):
+            set_pixel(
+                superficie,
+                MAP_X + rx + dx,
+                MAP_Y + ry + dy,
+                (255, 255, 255)
+            )
 
 def main():
     pygame.init()
     
+    # ===== VIEWPORT (TELA) =====
     WIDTH, HEIGHT = 1000, 800
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Jangada das Estrelas - Gameplay")
     
     clock = pygame.time.Clock()
-    
-    # Posições iniciais
-    raft_x = WIDTH // 2 - 25
-    raft_y = HEIGHT // 2 - 42
+
+    # ===== JANELA (MUNDO) =====
+    WORLD_WIDTH = 3000
+    WORLD_HEIGHT = 3000
+
+    # ===== POSIÇÕES NO MUNDO =====
+    raft_x = WORLD_WIDTH // 2
+    raft_y = WORLD_HEIGHT // 2
     speed = 4
-    
-    # Peixe inicial
-    fish_x = random.randint(50, WIDTH - 50)
-    fish_y_base = random.randint(200, HEIGHT - 200)  # Posição base (centro da animação)
+
+    # Peixe no mundo
+    fish_x = random.randint(100, WORLD_WIDTH - 100)
+    fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
     fish_y = fish_y_base
-    
+
     # Animação do peixe
     fish_animation_offset = 0.0
     fish_animation_speed = 0.15
-    fish_animation_range = 8  # Amplitude da animação (pixels)
-    
-    # Obstáculos
+    fish_animation_range = 8
+
+    # Obstáculos no mundo
     NUM_OBSTACULOS = 5
     obstaculos = []
-
     while len(obstaculos) < NUM_OBSTACULOS:
-        ox = random.randint(60, WIDTH - 60)
-        oy = random.randint(120, HEIGHT - 60)
+        ox = random.randint(100, WORLD_WIDTH - 100)
+        oy = random.randint(100, WORLD_HEIGHT - 100)
 
-        # não pode nascer em cima do peixe
-        if abs(ox - fish_x) < 60 and abs(oy - fish_y_base) < 60:
+        if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
             continue
 
         obstaculos.append([ox, oy])
 
-
-    # Pontuação
     pontos = 0
-
-    # Vidas
     vidas = 3
-    
+
     running = True
-    frame_count = 0
     while running:
-        frame_count += 1
-        
-        # Limpa tela (usa fill para performance, mas todo o resto é set_pixel)
         screen.fill(color.SEA_COLOR)
-        
-        # Processa eventos
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        
-        # Input (WASD)
+
+        # ===== INPUT (MOVE NO MUNDO) =====
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             raft_y -= speed
@@ -413,81 +469,101 @@ def main():
             raft_x -= speed
         if keys[pygame.K_d]:
             raft_x += speed
-        
-        # Limites da tela
-        raft_x = max(0, min(WIDTH - 50, raft_x))
-        raft_y = max(0, min(HEIGHT - 85, raft_y))
-        
-        # Animação do peixe (sobe e desce)
+
+        # Limites do MUNDO
+        raft_x = max(0, min(WORLD_WIDTH - 50, raft_x))
+        raft_y = max(0, min(WORLD_HEIGHT - 85, raft_y))
+
+        # ===== CÂMERA (VIEWPORT) =====
+        camera_x = raft_x - WIDTH // 2
+        camera_y = raft_y - HEIGHT // 2
+
+        camera_x = max(0, min(WORLD_WIDTH - WIDTH, camera_x))
+        camera_y = max(0, min(WORLD_HEIGHT - HEIGHT, camera_y))
+
+        # ===== ANIMAÇÃO DO PEIXE =====
         fish_animation_offset += fish_animation_speed
         fish_y = fish_y_base + math.sin(fish_animation_offset) * fish_animation_range
-        
-        # Colisão jangada × peixe (usa posição base para consistência)
+
+        # ===== COLISÕES (EM COORDENADAS DO MUNDO) =====
         if check_collision(raft_x, raft_y, fish_x, fish_y_base):
             pontos += 1
-            # Reposiciona peixe
-            fish_x = random.randint(50, WIDTH - 50)
-            fish_y_base = random.randint(200, HEIGHT - 200)
-            fish_y = fish_y_base
+            fish_x = random.randint(100, WORLD_WIDTH - 100)
+            fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
             fish_animation_offset = 0.0
-        
+
         for obs in obstaculos[:]:
             if check_collision_obstacle(raft_x, raft_y, obs[0], obs[1]):
                 vidas -= 1
-                obstaculos.remove(obs)  # remove obstáculo após colisão
+                obstaculos.remove(obs)
                 break
 
-        # Condições de fim de jogo
         if vidas <= 0:
             running = False
             resultado = "GAME OVER"
-
         elif pontos >= 5:
             running = False
             resultado = "VITORIA"
 
+        # ===== DESENHO (MUNDO → VIEWPORT) =====
+        draw_waves_around_fish(
+            screen,
+            fish_x - camera_x,
+            fish_y_base - camera_y,
+            fish_animation_offset
+        )
 
-        # Renderização (tudo via set_pixel)
-        # Desenha ondas primeiro (atrás do peixe)
-        draw_waves_around_fish(screen, fish_x, fish_y_base, fish_animation_offset)
-        
-        # Desenha peixe
-        draw_fish(screen, fish_x, int(fish_y))
-        
+        draw_fish(
+            screen,
+            fish_x - camera_x,
+            int(fish_y - camera_y)
+        )
+
         for obs in obstaculos:
-            draw_obstacle(screen, obs[0], obs[1])
+            draw_obstacle(
+                screen,
+                obs[0] - camera_x,
+                obs[1] - camera_y
+            )
+
+        draw_raft(
+            screen,
+            raft_x - camera_x,
+            raft_y - camera_y
+        )
+
+        draw_minimap(
+            screen,
+            raft_x, raft_y,
+            fish_x, fish_y_base,
+            obstaculos,
+            camera_x, camera_y,
+            WORLD_WIDTH, WORLD_HEIGHT,
+            WIDTH, HEIGHT
+        )
 
 
-        # Desenha jangada
-        draw_raft(screen, raft_x, raft_y)
-        
-        # Vida (1 coração + número)
+        # ===== HUD (NÃO USA CÂMERA) =====
         draw_heart_icon(screen, 10, 28, tamanho=5)
         draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255))
 
-        # Pontuação com ícone de peixe
-        # Ícone de peixe
-        draw_fish_icon(screen, 10, 10, tamanho=10) 
-        # Número de pontos
+        draw_fish_icon(screen, 10, 10, tamanho=10)
         draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255))
-        
+
         pygame.display.flip()
         clock.tick(60)
-    
-    # Tela final
-    screen.fill(color.SEA_COLOR)
 
+    # ===== TELA FINAL =====
+    screen.fill(color.SEA_COLOR)
     if resultado == "GAME OVER":
         draw_simple_text(screen, "0", WIDTH//2 - 6, HEIGHT//2, color.GAME_OVER_RED)
         draw_simple_text(screen, "P", WIDTH//2 - 6, HEIGHT//2 + 10, color.GAME_OVER_RED)
-
     else:
         draw_simple_text(screen, "5", WIDTH//2 - 6, HEIGHT//2, color.WIN_GREEN)
         draw_simple_text(screen, "P", WIDTH//2 - 6, HEIGHT//2 + 10, color.WIN_GREEN)
 
     pygame.display.flip()
     pygame.time.delay(2500)
-
 
     pygame.quit()
     sys.exit()
