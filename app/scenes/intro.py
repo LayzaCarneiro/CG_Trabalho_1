@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Cena de introdução do jogo.
+
+Exibe:
+- Céu e mar com gradiente e areia
+- Jangada balançando suavemente
+- Personagem andando em direção à jangada
+- Transição suave para o menu
+"""
+
 import pygame
 import math
 import assets.colors as color
@@ -8,7 +19,19 @@ from engine.fill.scanline import scanline_fill
 from engine.geometry.cohen_sutherland import draw_line_clipped
 from app.scenes.menu import run_menu
  
+
+# ======================================
+# FUNÇÕES AUXILIARES
+# ======================================
 def draw_background(tela, largura, altura):
+    """
+    Desenha o céu, mar e areia como plano de fundo da cena.
+
+    Args:
+        tela: pygame.Surface onde desenhar.
+        largura: largura da tela.
+        altura: altura da tela.
+    """
     # Céu
     tela.fill(color.SKY_DUSK_BLUE)
 
@@ -32,6 +55,15 @@ def draw_background(tela, largura, altura):
 
 
 def draw_character_clipped(tela, cx, cy, dx, dy, viewport):
+    """
+    Desenha o personagem com clipping no viewport.
+
+    Args:
+        tela: pygame.Surface onde desenhar.
+        cx, cy: posição central do personagem.
+        dx, dy: deslocamentos do personagem.
+        viewport: tupla (xmin, ymin, xmax, ymax) para clipping.
+    """
     x = cx + dx
     y = cy + dy
 
@@ -52,6 +84,14 @@ def draw_character_clipped(tela, cx, cy, dx, dy, viewport):
 
 
 def draw_raft_translated(tela, largura, altura, dx):
+    """
+    Desenha a jangada com translação horizontal para simular balanço.
+
+    Args:
+        tela: pygame.Surface onde desenhar.
+        largura, altura: dimensões da tela.
+        dx: deslocamento horizontal da jangada.
+    """
     base_x = largura // 2 - 60 + dx
     base_y = altura // 2 + 60
 
@@ -66,10 +106,21 @@ def draw_raft_translated(tela, largura, altura, dx):
     desenhar_poligono(tela, jangada, color.DETAIL_COLOR)
 
 
+# ======================================
+# FUNÇÃO PRINCIPAL
+# ======================================
 def run_intro(tela):
+    """
+    Executa a cena de introdução do jogo.
+
+    Args:
+        tela: pygame.Surface principal do jogo.
+
+    Retorna:
+        String indicando ação ou chama run_menu.
+    """
     clock = pygame.time.Clock()
     frame = 0
-
     transition = False
     transition_frame = 0
 
@@ -116,15 +167,11 @@ def run_intro(tela):
             dy += vel_y
             dy = max(dy, 0)
 
-        draw_character_clipped(
-            tela,
-            cx,
-            cy,
-            dx,
-            dy,
-            viewport
-        )
+        draw_character_clipped(tela, cx, cy, dx, dy, viewport)
 
+        # =====================
+        # Transição para o menu
+        # =====================
         if transition:
             transition_frame += 10
 
@@ -148,12 +195,12 @@ def run_intro(tela):
             if transition_frame >= 60:
                 return run_menu(tela)
 
+        # quando chegar na jangada → menu
+        if dx >= 0 and not transition:
+            transition = True
+            transition_frame = 0
 
         pygame.display.flip()
         clock.tick(60)
         frame += 1
 
-        # quando chegar na jangada → menu
-        if dx >= 0 and not transition:
-            transition = True
-            transition_frame = 0
