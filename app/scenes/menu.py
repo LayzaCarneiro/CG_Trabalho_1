@@ -20,12 +20,6 @@ def draw_title_scene(surf, w, h):
         w: largura da tela.
         h: altura da tela.
     """
-    
-    # Sol (circunferência)
-    draw_circle(surf, int(w * 0.85), int(h * 0.15), 50, color.SUN)
-    # Horizonte (reta)
-    y_h = int(h * 0.65)
-
 
 # ======================================
 # FUNÇÃO PRINCIPAL

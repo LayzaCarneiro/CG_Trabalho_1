@@ -4,7 +4,7 @@ import assets.colors as color
 from engine.geometry.cohen_sutherland import draw_line
 from engine.raster.line import bresenham, desenhar_poligono
 from engine.geometry.transform import rotacionar_pontos_em_torno_de
-from engine.fill.scanline import scanline_fill_gradiente
+from engine.fill.scanline import scanline_fill_gradiente, scanline_fill
 
 def draw_raft(superficie, x, y, viewport, angle=0):
     """
@@ -106,3 +106,20 @@ def draw_raft(superficie, x, y, viewport, angle=0):
     # Detalhes: tábuas e mastro
     for (x0, y0), (x1, y1) in linhas_detalhe:
         bresenham(superficie, x0, y0, x1, y1, color.DETAIL_COLOR)
+
+def draw_jangada(surf, x, y, scale=1):
+    """Desenha uma jangada simples como polígono."""
+    points = [
+        (x, y),
+        (x + 50*scale, y),
+        (x + 40*scale, y + 10*scale),
+        (x + 10*scale, y + 10*scale)
+    ]
+    scanline_fill(surf, points, color.JANGADA_COLOR)
+    desenhar_poligono(surf, points, (0, 0, 0))
+    # mastro
+    desenhar_poligono(surf, [(x+25*scale, y), (x+25*scale, y-30*scale)], (0,0,0))
+    # vela
+    sail = [(x+25*scale, y-30*scale), (x+45*scale, y-10*scale), (x+25*scale, y)]
+    scanline_fill(surf, sail, (255, 255, 255))
+    desenhar_poligono(surf, sail, (0,0,0))

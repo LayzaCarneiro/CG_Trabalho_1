@@ -6,11 +6,12 @@ from engine.math.auxiliary import interpolar_cor
 from engine.fill.scanline import scanline_fill_gradiente
 from engine.raster.line import bresenham, desenhar_poligono
 
-def draw_fish(superficie, x, y):
+def draw_fish(superficie, x, y, cor=color.FISH_BLUE):
     """
     Desenha um peixe detalhado com gradiente azul e branco.
     Forma: corpo oval + cauda + barbatanas.
     """
+    
     # Corpo principal (oval alongado)
     corpo_largura = 20
     corpo_altura = 12
@@ -33,8 +34,8 @@ def draw_fish(superficie, x, y):
                     else:
                         t_grad = (1 - t) * 2  # 1 → 0 (meio → base)
                     
-                    cor = interpolar_cor(color.FISH_BLUE, color.FISH_WHITE, t_grad)
-                    set_pixel(superficie, corpo_x + dx, corpo_y + dy, cor)
+                    cor_interpolada = interpolar_cor(cor, color.FISH_WHITE, t_grad)
+                    set_pixel(superficie, corpo_x + dx, corpo_y + dy, cor_interpolada)
     
     # Contorno do corpo
     for dy in range(-corpo_altura // 2, corpo_altura // 2 + 1):
@@ -53,7 +54,7 @@ def draw_fish(superficie, x, y):
         (corpo_x - corpo_largura // 2 - 8, corpo_y - 6),
         (corpo_x - corpo_largura // 2 - 8, corpo_y + 6)
     ]
-    scanline_fill_gradiente(superficie, cauda_pontos, color.FISH_BLUE, color.FISH_WHITE, direcao='vertical')
+    scanline_fill_gradiente(superficie, cauda_pontos, cor, color.FISH_WHITE, direcao='vertical')
     desenhar_poligono(superficie, cauda_pontos, color.FISH_OUTLINE)
     
     # Barbatana superior
@@ -62,7 +63,7 @@ def draw_fish(superficie, x, y):
         (corpo_x + 8, corpo_y - corpo_altura // 2 - 4),
         (corpo_x + 12, corpo_y - corpo_altura // 2)
     ]
-    scanline_fill_gradiente(superficie, barbatana_sup_pontos, color.FISH_BLUE, color.FISH_WHITE, direcao='vertical')
+    scanline_fill_gradiente(superficie, barbatana_sup_pontos, cor, color.FISH_WHITE, direcao='vertical')
     desenhar_poligono(superficie, barbatana_sup_pontos, color.FISH_OUTLINE)
     
     # Barbatana inferior
@@ -71,7 +72,7 @@ def draw_fish(superficie, x, y):
         (corpo_x + 8, corpo_y + corpo_altura // 2 + 4),
         (corpo_x + 12, corpo_y + corpo_altura // 2)
     ]
-    scanline_fill_gradiente(superficie, barbatana_inf_pontos, color.FISH_BLUE, color.FISH_WHITE, direcao='vertical')
+    scanline_fill_gradiente(superficie, barbatana_inf_pontos, cor, color.FISH_WHITE, direcao='vertical')
     desenhar_poligono(superficie, barbatana_inf_pontos, color.FISH_OUTLINE)
     
     # Olho
