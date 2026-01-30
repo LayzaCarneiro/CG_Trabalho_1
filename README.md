@@ -34,6 +34,28 @@ O jogo simula a vida dos **jangadeiros do Ceará**, com elementos históricos e 
 
 ---
 
+## Screenshots
+
+Alguns exemplos de telas do jogo:
+
+| Tela             | Screenshot                                 |
+| ---------------- | ------------------------------------------ |
+| História.        | ![historia](<Captura de Tela 2026-01-30 às 05.57.07.png>)     |
+| Tela de abertura | ![intro](<Captura de Tela 2026-01-30 às 05.57.13.png>)    |
+| Gameplay         | ![gameplay](<Captura de Tela 2026-01-30 às 05.58.04.png>) |
+| Menu interativo  | ![menu](<Captura de Tela 2026-01-30 às 05.57.22.png>)         |
+| Instruções       | ![instrucao](<Captura de Tela 2026-01-30 às 05.57.43.png>)         |
+
+---
+
+## Vídeo Demonstrativo
+
+Assista a execução completa do jogo no YouTube:
+
+[![Jangadeiro: Dragão do Mar](<Captura de Tela 2026-01-30 às 05.58.04.png>)](https://youtu.be/tAzGCbpE4CU)
+
+---
+
 ## Requisitos do Sistema
 
 - **Python:** 3.8 ou superior
@@ -230,24 +252,3 @@ A documentação completa do projeto está disponível em:
 ## Licença
 
 Projeto acadêmico desenvolvido para a disciplina de Computação Gráfica.`
-
-Perfeito! Podemos melhorar o README deixando ele **mais alinhado com os requisitos da disciplina**, destacando quais funcionalidades atendem cada item exigido, de forma clara para o professor. Segue uma versão reformulada:
-
----
-
-# Jangadeiro: Dragão do Mar 🚣
-
-**Jogo 2D desenvolvido em Python com Pygame**, utilizando exclusivamente algoritmos de rasterização via `set_pixel`.
-
-Projeto acadêmico da disciplina de **Computação Gráfica**, desenvolvido para explorar técnicas de rasterização, transformações geométricas, recorte e animação.
-
----
-
-## Descrição do Projeto
-
-O jogo simula a vida dos **jangadeiros do Ceará**, com elementos históricos e desafios de navegação:
-
-* Tela de abertura com introdução animada mostrando o **Dragão do Mar**.
-* Jogo baseado em **coleta de peixes**, evitando obstáculos.
-* Polígonos, gradientes e preenchimentos são renderizados com **algoritmos manuais**.
-* Interação via teclado (W-A-S-D) e mouse para menus.
