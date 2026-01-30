@@ -59,6 +59,8 @@ _FONT = {
     ":": ["     ", "  X  ", "     ", "     ", "  X  ", "     ", "     "],
     "-": ["     ", "     ", "     ", "XXXXX", "     ", "     ", "     "],
     ".": ["     ", "     ", "     ", "     ", "     ", "  X  ", "     "],
+    ",": ["     ", "     ", "     ", "     ", "     ", "  X  ", " X   "],
+    "!": ["  X  ", "  X  ", "  X  ", "  X  ", "     ", "  X  ", "     "],
 }
 
 
@@ -180,3 +182,21 @@ def _set_pixel_scaled(superficie, base_x, base_y, local_x, local_y, cor, scale):
                 base_y + local_y * scale + sy,
                 cor,
             )
+
+
+# Semente inicial interna
+_seed = 123456789  # qualquer número inicial
+
+def randint(a, b):
+    """Gera inteiro pseudoaleatório entre a e b sem usar time ou módulos."""
+    global _seed
+    # LCG simples: Linear Congruential Generator
+    a_lcg = 1664525
+    c_lcg = 1013904223
+    m_lcg = 2**32
+
+    # Atualiza a semente
+    _seed = (a_lcg * _seed + c_lcg) % m_lcg
+
+    # Converte para o intervalo desejado
+    return a + int((_seed / m_lcg) * (b - a + 1))

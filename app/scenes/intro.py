@@ -19,6 +19,7 @@ from engine.fill.flood_fill import flood_fill_iterativo
 from engine.fill.scanline import scanline_fill
 from engine.geometry.cohen_sutherland import draw_line_clipped
 from app.scenes.menu import run_menu
+from app.entities.raft import draw_jangada
 from assets.music_manager import music_manager
  
 
@@ -141,27 +142,22 @@ def draw_character_clipped(tela, cx, cy, dx, dy, viewport):
     draw_line_clipped(tela, x, y + 40, x + 10, y + 60, color.DETAIL_COLOR, viewport)
 
 
-def draw_raft_translated(tela, largura, altura, dx):
+def draw_raft_translated(tela, largura, altura, dx, scale=3):
     """
-    Desenha a jangada com translação horizontal para simular balanço.
+    Desenha a jangada usando draw_jangada, com deslocamento horizontal.
+    A jangada será grande e posicionada na borda inferior do mar.
 
     Args:
         tela: pygame.Surface onde desenhar.
         largura, altura: dimensões da tela.
-        dx: deslocamento horizontal da jangada.
+        dx: deslocamento horizontal da jangada (para balanço).
+        scale: escala da jangada (quanto maior, mais gigante).
     """
-    base_x = largura // 2 - 60 + dx
-    base_y = altura // 2 + 60
+    # base_y posiciona a jangada na borda inferior do mar
+    base_x = largura // 2 + dx 
+    base_y = altura // 2 + 70
 
-    jangada = [
-        (base_x, base_y),
-        (base_x + 120, base_y),
-        (base_x + 100, base_y + 30),
-        (base_x + 20, base_y + 30)
-    ]
-
-    scanline_fill(tela, jangada, color.WOOD)
-    desenhar_poligono(tela, jangada, color.DETAIL_COLOR)
+    draw_jangada(tela, base_x, base_y, scale)
 
 
 # ======================================
@@ -220,9 +216,8 @@ def run_intro(tela):
         # jangada balançando levemente
         amplitude = 6      # quanto a jangada se move (pixels)
         frequencia = 1   # quão rápido vai e volta
-
         raft_dx = int(amplitude * math.sin(frame * frequencia))
-        draw_raft_translated(tela, largura, altura, raft_dx)
+        draw_raft_translated(tela, largura, altura, raft_dx, scale=3)
 
         # movimento do jangadeiro (areia -> jangada)
         vel_x = 3

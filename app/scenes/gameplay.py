@@ -6,7 +6,6 @@ Controle WASD e coleta de peixes.
 
 import pygame
 import sys
-import random
 import math
 import assets.colors as color
 import app.constants as constant
@@ -15,7 +14,7 @@ import app.entities.obstacle as obstacle
 import app.entities.icons as icon
 import app.entities.raft as raft
 import app.entities.minimap as minimap
-from app.scenes.auxiliary_functions import draw_simple_text
+from app.scenes.auxiliary_functions import draw_simple_text, randint
 from engine.collision import check_collision_raft_obstacle, check_collision_raft_fish
 from app.scenes.game_over import run_game_over
 from app.scenes.victory import run_victory
@@ -44,8 +43,8 @@ def main():
         raft_y = WORLD_HEIGHT // 2
         speed = 4
 
-        fish_x = random.randint(100, WORLD_WIDTH - 100)
-        fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
+        fish_x = randint(100, WORLD_WIDTH - 100)
+        fish_y_base = randint(100, WORLD_HEIGHT - 100)
         fish_y = fish_y_base
 
         fish_animation_offset = 0.0
@@ -117,8 +116,8 @@ def main():
             # ===== COLISÕES (EM COORDENADAS DO MUNDO) =====
             if check_collision_raft_fish(raft_x, raft_y, fish_x, fish_y_base):
                 pontos += 1
-                fish_x = random.randint(100, WORLD_WIDTH - 100)
-                fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
+                fish_x = randint(100, WORLD_WIDTH - 100)
+                fish_y_base = randint(100, WORLD_HEIGHT - 100)
                 fish_animation_offset = 0.0
                 hud_scale_effect_frames = HUD_SCALE_EFFECT_FRAMES  # Reação: HUD em escala maior
 

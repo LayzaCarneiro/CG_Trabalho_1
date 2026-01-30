@@ -25,8 +25,8 @@ def scanline_fill(superficie, pontos, cor_preenchimento):
     """
     # Encontra Y mínimo e máximo
     ys = [p[1] for p in pontos]
-    y_min = min(ys)
-    y_max = max(ys)
+    y_min = int(min(ys))
+    y_max = int(max(ys))
 
     n = len(pontos)
 
