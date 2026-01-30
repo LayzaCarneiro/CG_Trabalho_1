@@ -50,7 +50,7 @@ def draw_waves_bottom(surf, altura, largura, offset=0):
     for i in range(altura - 100, altura, 15):
         for x in range(0, largura, 30):
             y_offset = int(10 * math.sin((x + offset) * 0.05))
-            bresenham(surf, x, i + y_offset, x + 20, i + y_offset, WAVE_COLOR)
+            bresenham(surf, x, i + y_offset, x + 20, i + y_offset, color.WAVE_COLOR)
 
 
 def draw_decor_peixes(surf, largura, altura):
@@ -64,8 +64,8 @@ def draw_decor_peixes(surf, largura, altura):
     """
     positions = [(largura - 100, altura//3), (largura - 150, altura//2), (largura - 80, altura*2//3)]
     for px, py in positions:
-        draw_circle(surf, px, py, 8, DECOR_COLOR)
-        draw_circle(surf, px, py, 4, TEXT)
+        draw_circle(surf, px, py, 8, color.DECOR_COLOR)
+        draw_circle(surf, px, py, 4, color.TEXT)
 
 
 def run_instructions(superficie):
@@ -99,7 +99,7 @@ def run_instructions(superficie):
         # ----------------------
         # Fundo
         # ----------------------
-        draw_gradient_bg(superficie, BG_TOP, BG_BOTTOM)
+        draw_gradient_bg(superficie, color.BG_TOP, color.BG_BOTTOM)
         draw_waves_bottom(superficie, h, w, offset=frame)
         draw_decor_peixes(superficie, w, h)
 
@@ -108,7 +108,7 @@ def run_instructions(superficie):
         # ----------------------
         titulo = "COMO JOGAR"
         tw_approx = len(titulo) * 6 * 2
-        draw_text(superficie, titulo, (w - tw_approx)//2, 40, TITLE_COLOR, scale=3)
+        draw_text(superficie, titulo, (w - tw_approx)//2, 40, color.TITLE_COLOR, scale=3)
 
         # ----------------------
         # Caixas de instruções
@@ -123,22 +123,22 @@ def run_instructions(superficie):
         for titulo_box, linhas in instrucoes:
             # Caixa de fundo
             pts = [(50, start_y), (50 + box_w, start_y), (50 + box_w, start_y + box_h), (50, start_y + box_h)]
-            scanline_fill(superficie, pts, BOX_BG)
+            scanline_fill(superficie, pts, color.BOX_BG)
             # Borda
-            bresenham(superficie, 50, start_y, 50 + box_w, start_y, BOX_BORDER)
-            bresenham(superficie, 50 + box_w, start_y, 50 + box_w, start_y + box_h, BOX_BORDER)
-            bresenham(superficie, 50 + box_w, start_y + box_h, 50, start_y + box_h, BOX_BORDER)
-            bresenham(superficie, 50, start_y + box_h, 50, start_y, BOX_BORDER)
+            bresenham(superficie, 50, start_y, 50 + box_w, start_y, color.BOX_BORDER)
+            bresenham(superficie, 50 + box_w, start_y, 50 + box_w, start_y + box_h, color.BOX_BORDER)
+            bresenham(superficie, 50 + box_w, start_y + box_h, 50, start_y + box_h, color.BOX_BORDER)
+            bresenham(superficie, 50, start_y + box_h, 50, start_y, color.BOX_BORDER)
             # Texto
-            draw_text(superficie, titulo_box, 60, start_y + 10, TITLE_COLOR, scale=2)
+            draw_text(superficie, titulo_box, 60, start_y + 10, color.TITLE_COLOR, scale=2)
             for i, linha in enumerate(linhas):
-                draw_text(superficie, linha, 70, start_y + 40 + i*25, TEXT, scale=2)
+                draw_text(superficie, linha, 70, start_y + 40 + i*25, color.TEXT, scale=2)
             start_y += box_h + 30
 
         # ----------------------
         # Botão voltar
         # ----------------------
-        draw_button(superficie, bx, by_voltar, bw, bh, "VOLTAR", BTN_FILL, BTN_BORDER, BTN_TEXT)
+        draw_button(superficie, bx, by_voltar, bw, bh, "VOLTAR", color.BTN_FILL, color.BTN_BORDER, color.BTN_TEXT)
 
         pygame.display.flip()
         frame += 1

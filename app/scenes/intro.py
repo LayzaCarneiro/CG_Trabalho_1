@@ -1,30 +1,13 @@
 import pygame
 import math
 import assets.colors as color
-from engine.raster.line import bresenham, desenhar_poligono
-from engine.raster.circle import draw_circle, get_circle_points
+from engine.raster.line import desenhar_poligono
+from engine.raster.circle import draw_circle
 from engine.fill.flood_fill import flood_fill_iterativo
 from engine.fill.scanline import scanline_fill
 from engine.geometry.cohen_sutherland import draw_line_clipped
 from app.scenes.menu import run_menu
-
-def draw_sun(tela, largura):
-    cx, cy, r = largura // 2, 180, 60
-    draw_circle(tela, cx, cy, r, color.SUN)
-    flood_fill_iterativo(tela, cx, cy, color.SUN, color.DETAIL_COLOR)
-
-
-def draw_cloud(tela, x, y):
-    get_circle_points(tela, x, y, 50, 20, color.CLOUD)
-    flood_fill_iterativo(tela, x, y, color.CLOUD, color.DETAIL_COLOR)
-
-
-def draw_waves(tela, largura, altura):
-    for y in range(360, altura, 20):
-        for x in range(0, largura, 40):
-            bresenham(tela, x, y, x + 30, y + 5, color.WAVE)
-
-
+ 
 def draw_background(tela, largura, altura):
     # Céu
     tela.fill(color.SKY_DUSK_BLUE)
@@ -46,26 +29,6 @@ def draw_background(tela, largura, altura):
         (0, altura)
     ]
     scanline_fill(tela, areia, color.SUN_ORANGE)
-
-
-def draw_character_translated(tela, cx, cy, dx, dy):
-    x = cx + dx
-    y = cy + dy
-
-    # Cabeça
-    draw_circle(tela, x, y, 12, color.DETAIL_COLOR)
-    flood_fill_iterativo(tela, x, y, color.SKIN, color.DETAIL_COLOR)
-
-    # Corpo
-    bresenham(tela, x, y + 12, x, y + 40, color.DETAIL_COLOR)
-
-    # Braços
-    bresenham(tela, x, y + 20, x - 15, y + 30, color.DETAIL_COLOR)
-    bresenham(tela, x, y + 20, x + 15, y + 30, color.DETAIL_COLOR)
-
-    # Pernas
-    bresenham(tela, x, y + 40, x - 10, y + 60, color.DETAIL_COLOR)
-    bresenham(tela, x, y + 40, x + 10, y + 60, color.DETAIL_COLOR)
 
 
 def draw_character_clipped(tela, cx, cy, dx, dy, viewport):
