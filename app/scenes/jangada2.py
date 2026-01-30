@@ -16,6 +16,25 @@ from engine.math.auxiliary import interpolar_cor
 from engine.geometry.transform import rotacionar_pontos_em_torno_de
 from engine.collision import check_collision_raft_obstacle
 
+
+def _set_pixel_scaled(superficie, base_x, base_y, local_x, local_y, cor, scale):
+    """
+    Desenha um "pixel lógico" como bloco scale×scale usando só set_pixel.
+    base_x, base_y = canto superior esquerdo do elemento; local_x, local_y = offset.
+    """
+    if scale <= 1:
+        set_pixel(superficie, base_x + local_x, base_y + local_y, cor)
+        return
+    for sy in range(scale):
+        for sx in range(scale):
+            set_pixel(
+                superficie,
+                base_x + local_x * scale + sx,
+                base_y + local_y * scale + sy,
+                cor,
+            )
+
+
 # Dimensões da jangada (usadas em draw_raft e colisão)
 RAFT_LARGURA = 50
 RAFT_ALTURA = 85  # altura_proa (15) + comprimento (70)
@@ -93,9 +112,10 @@ def draw_raft(superficie, x, y, angle=0):
         bresenham(superficie, x0, y0, x1, y1, color.DETAIL_COLOR)
 
 
-def draw_fish_icon(superficie, x, y, tamanho=8):
+def draw_fish_icon(superficie, x, y, tamanho=8, scale=1):
     """
     Desenha um pequeno ícone de peixe para o contador.
+    scale: 1 = normal; 2 = cada pixel vira bloco 2x2 (só set_pixel).
     """
     # Corpo pequeno (elipse)
     a = tamanho // 2
@@ -110,7 +130,7 @@ def draw_fish_icon(superficie, x, y, tamanho=8):
                     else:
                         t_grad = (1 - t) * 2
                     cor = interpolar_cor(color.FISH_BLUE, color.FISH_WHITE, t_grad)
-                    set_pixel(superficie, x + dx, y + dy, cor)
+                    _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
     
     # Cauda
     cauda_pontos = [
@@ -118,11 +138,17 @@ def draw_fish_icon(superficie, x, y, tamanho=8):
         (x - a - 3, y - 2),
         (x - a - 3, y + 2)
     ]
-    scanline_fill(superficie, cauda_pontos, color.FISH_BLUE)
-    desenhar_poligono(superficie, cauda_pontos, color.FISH_OUTLINE)
+    if scale == 1:
+        scanline_fill(superficie, cauda_pontos, color.FISH_BLUE)
+        desenhar_poligono(superficie, cauda_pontos, color.FISH_OUTLINE)
+    else:
+        cauda_esc = [(x + (px - x) * scale, y + (py - y) * scale) for px, py in cauda_pontos]
+        scanline_fill(superficie, cauda_esc, color.FISH_BLUE)
+        desenhar_poligono(superficie, cauda_esc, color.FISH_OUTLINE)
 
 
-def draw_heart_icon(superficie, x, y, tamanho=6):
+def draw_heart_icon(superficie, x, y, tamanho=6, scale=1):
+    """Ícone de coração; scale=2 desenha cada pixel como bloco 2×2 (só set_pixel)."""
     for dy in range(tamanho * 2):
         for dx in range(tamanho * 2):
             nx = (dx - tamanho) / tamanho
@@ -130,15 +156,14 @@ def draw_heart_icon(superficie, x, y, tamanho=6):
             val = (nx*nx + ny*ny - 1)**3 - nx*nx*ny*ny*ny
             if val <= 0:
                 cor = color.HEART_RED if ny < 0 else color.HEART_DARK
-                set_pixel(superficie, x + dx, y + dy, cor)
+                _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
 
 
-def draw_simple_text(superficie, texto, x, y, cor):
+def draw_simple_text(superficie, texto, x, y, cor, scale=1):
     """
     Desenha texto simples usando apenas set_pixel.
-    Versão minimalista para números e letras básicas.
+    scale: 1 = normal; 2 = cada pixel vira bloco 2×2.
     """
-    # Fonte 3x5 simplificada para números e algumas letras
     chars = {
         '0': ['XXX', 'X X', 'X X', 'X X', 'XXX'],
         '1': [' X ', 'XX ', ' X ', ' X ', 'XXX'],
@@ -161,8 +186,8 @@ def draw_simple_text(superficie, texto, x, y, cor):
             for row, line in enumerate(pattern):
                 for col, pixel in enumerate(line):
                     if pixel == 'X':
-                        set_pixel(superficie, x + dx + col, y + row, cor)
-        dx += 4  # Espaço entre caracteres
+                        _set_pixel_scaled(superficie, x, y, dx + col, row, cor, scale)
+        dx += 4 * scale  # Espaço entre caracteres
 
 
 def draw_fish(superficie, x, y):
@@ -431,6 +456,10 @@ def main():
     rotation_frames_left = 0
     ROTATION_TOTAL_FRAMES = 60  # 1 segundo a 60 FPS
 
+    # Efeito de escala do HUD ao ganhar ponto ou perder vida (~1 s)
+    hud_scale_effect_frames = 0
+    HUD_SCALE_EFFECT_FRAMES = 60
+
     running = True
     while running:
         screen.fill(color.SEA_COLOR)
@@ -472,6 +501,7 @@ def main():
             fish_x = random.randint(100, WORLD_WIDTH - 100)
             fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
             fish_animation_offset = 0.0
+            hud_scale_effect_frames = HUD_SCALE_EFFECT_FRAMES  # Reação: HUD em escala maior
 
         # Colisão jangada × pedra (engine): perde vida e inicia rotação 360°
         if rotation_frames_left <= 0:
@@ -483,11 +513,16 @@ def main():
                     vidas -= 1
                     obstaculos.remove(obs)
                     rotation_frames_left = ROTATION_TOTAL_FRAMES
+                    hud_scale_effect_frames = HUD_SCALE_EFFECT_FRAMES  # Reação: HUD em escala maior
                     break
 
         # Avanço da animação de rotação (0 → 2π)
         if rotation_frames_left > 0:
             rotation_frames_left -= 1
+
+        # Avanço do efeito de escala do HUD (~1 s)
+        if hud_scale_effect_frames > 0:
+            hud_scale_effect_frames -= 1
 
         if vidas <= 0:
             running = False
@@ -540,11 +575,13 @@ def main():
 
 
         # ===== HUD (NÃO USA CÂMERA) =====
-        draw_heart_icon(screen, 10, 28, tamanho=5)
-        draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255))
+        # Escala maior por ~1 s ao ganhar ponto ou perder vida
+        hud_scale = 2 if hud_scale_effect_frames > 0 else 1
+        draw_heart_icon(screen, 10, 28, tamanho=5, scale=hud_scale)
+        draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255), scale=hud_scale)
 
-        draw_fish_icon(screen, 10, 10, tamanho=10)
-        draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255))
+        draw_fish_icon(screen, 10, 10, tamanho=10, scale=hud_scale)
+        draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255), scale=hud_scale)
 
         pygame.display.flip()
         clock.tick(60)
