@@ -51,14 +51,21 @@ def main():
         fish_animation_speed = 0.15
         fish_animation_range = 8
 
-        NUM_OBSTACULOS = 5
+        # Spawnar obstáculos: 5 de cada tipo (0=rocha, 1=alga, 2=coral)
+        NUM_OBSTACULOS_POR_TIPO = 5
         obstaculos = []
-        while len(obstaculos) < NUM_OBSTACULOS:
-            ox = randint(100, WORLD_WIDTH - 100)
-            oy = randint(100, WORLD_HEIGHT - 100)
-            if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
-                continue
-            obstaculos.append([ox, oy])
+        
+        for tipo in range(3):  # 0=rocha, 1=alga, 2=coral
+            for _ in range(NUM_OBSTACULOS_POR_TIPO):
+                while True:
+                    ox = random.randint(100, WORLD_WIDTH - 100)
+                    oy = random.randint(100, WORLD_HEIGHT - 100)
+                    if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
+                        continue
+                    if any(abs(ox - obs[0]) < 80 and abs(oy - obs[1]) < 80 for obs in obstaculos):
+                        continue
+                    obstaculos.append([ox, oy, tipo])
+                    break
 
         pontos = 0
         vidas = 3
@@ -164,7 +171,8 @@ def main():
                 obstacle.draw_obstacle(
                     screen,
                     obs[0] - camera_x,
-                    obs[1] - camera_y
+                    obs[1] - camera_y,
+                    tipo=obs[2]
                 )
 
             # Ângulo de rotação ao colidir com pedra (0 → 2π)
@@ -189,13 +197,26 @@ def main():
                 WIDTH, HEIGHT
             )
 
-            # ===== HUD (NÃO USA CÂMERA) =====
-            hud_scale = 2 if hud_scale_effect_frames > 0 else 1
-            icon.draw_heart_icon(screen, 10, 28, tamanho=5, scale=hud_scale)
-            draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255), scale=hud_scale)
-
-            icon.draw_fish_icon(screen, 10, 10, tamanho=10, scale=hud_scale)
-            draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255), scale=hud_scale)
+            # ===== HUD CENTRALIZADO (PARTE SUPERIOR) =====
+            center_x = WIDTH // 2
+            hud_scale = 3 if hud_scale_effect_frames > 0 else 2
+            
+            # Definir posição base alinhada
+            icon_x = center_x - 50  # Posição X dos ícones
+            text_x = center_x - 10  # Posição X do texto (mais próximo)
+            
+            # Pontos com ícone (primeira linha)
+            # Peixe: desenha de y-b até y+b, com tamanho=8, b=8//3=2
+            # Centro real está em y, ajustando texto para alinhar melhor
+            fish_y = 18
+            icon.draw_fish_icon(screen, icon_x, fish_y, tamanho=8, scale=hud_scale)
+            draw_simple_text(screen, f"{pontos}/5", text_x, fish_y - 3, (255, 215, 0), scale=hud_scale)
+            
+            # Vidas com ícone (segunda linha, alinhado)
+            # X diminuído e movido para esquerda para alinhar com o peixe
+            heart_y = 40
+            icon.draw_heart_icon(screen, icon_x - 5, heart_y, tamanho=4, scale=hud_scale)
+            draw_simple_text(screen, f"{vidas}/3", text_x, heart_y + 3, (255, 100, 100), scale=hud_scale)
 
             pygame.display.flip()
             clock.tick(60)

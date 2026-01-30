@@ -41,12 +41,24 @@ def draw_fish_icon(superficie, x, y, tamanho=8, scale=1):
 
 
 def draw_heart_icon(superficie, x, y, tamanho=6, scale=1):
-    """Ícone de coração; scale=2 desenha cada pixel como bloco 2×2 (só set_pixel)."""
-    for dy in range(tamanho * 2):
-        for dx in range(tamanho * 2):
-            nx = (dx - tamanho) / tamanho
-            ny = (dy - tamanho) / tamanho
-            val = (nx*nx + ny*ny - 1)**3 - nx*nx*ny*ny*ny
-            if val <= 0:
-                cor = color.HEART_RED if ny < 0 else color.HEART_DARK
+    """
+    Ícone de vida - desenha um X.
+    scale=2 desenha cada pixel como bloco 2×2 (só set_pixel).
+    """
+    size = tamanho * 2
+    thickness = 2  # Espessura das linhas do X
+    
+    for dy in range(size):
+        for dx in range(size):
+            # Diagonal principal (\)
+            if abs(dx - dy) <= thickness:
+                cor = (255, 100, 100)  # Vermelho
                 _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
+            
+            # Diagonal secundária (/)
+            if abs(dx - (size - 1 - dy)) <= thickness:
+                cor = (255, 100, 100)  # Vermelho
+                _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
+
+
+
