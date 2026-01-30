@@ -1,22 +1,34 @@
 # -*- coding: utf-8 -*-
-"""
-Scanline Fill para polígonos, com opção de gradiente linear.
-Usa set_pixel do engine para renderização pixel a pixel.
-
-Funções:
-- scanline_fill: preenche um polígono com cor sólida.
-- scanline_fill_gradiente: preenche um polígono com gradiente linear (vertical ou horizontal).
-"""
+# ═══════════════════════════════════════════════════════
+# PREENCHIMENTO - SCANLINE
+# ═══════════════════════════════════════════════════════
+# Implementação do algoritmo Scanline Fill
+# (Requisito c - Preenchimento de Regiões: Scanline)
+#
+# Preenche polígonos de forma eficiente linha por linha.
+# Suporta:
+# - Preenchimento sólido
+# - Gradientes de cor (vertical/horizontal)
+# - Mapeamento de texturas
+# ═══════════════════════════════════════════════════════
 
 from engine.framebuffer import set_pixel
 from engine.math.auxiliary import interpolar_cor
 
-# =========================
-# Scanline Fill
-# =========================
+# ─── Scanline Fill com Cor Sólida ───
 def scanline_fill(superficie, pontos, cor_preenchimento):
     """
-    Preenche um polígono definido por 'pontos' com cor sólida usando o algoritmo scanline.
+    Preenche um polígono com cor sólida usando scanline.
+    
+    REQUISITO: (c) Preenchimento de Regiões - Scanline
+    
+    Algoritmo:
+    1. Para cada linha Y do polígono
+    2. Encontra interseções das arestas com a linha
+    3. Ordena interseções
+    4. Preenche entre pares de interseções
+    
+    Usado no jogo para: jangada, obstáculos, interface, etc.
 
     Args:
         superficie (pygame.Surface): Superfície onde desenhar.
@@ -66,13 +78,24 @@ def scanline_fill(superficie, pontos, cor_preenchimento):
                     set_pixel(superficie, x, y, cor_preenchimento)
 
 
-# =========================
-# Scanline Fill com Gradiente
-# =========================
+# ─── Scanline Fill com Gradiente ───
 def scanline_fill_gradiente(superficie, pontos, cor_inicio, cor_fim, direcao='vertical'):
     """
-    Preenche um polígono com gradiente linear.
-
+    Preenche um polígono com gradiente linear de cores.
+    
+    REQUISITO: Gradiente de cores definidas por interpolação
+    
+    Características:
+    - Suporta gradiente vertical ou horizontal
+    - Interpola cores suavemente entre cor_inicio e cor_fim
+    - Usado para dar volume e profundidade aos elementos
+    
+    Args:
+        direcao: 'vertical' (cima→baixo) ou 'horizontal' (esq→dir)
+    
+    Usado no jogo para: jangada, obstáculos, céu, mar.
+    """
+    """
     Args:
         superficie (pygame.Surface): Superfície onde desenhar.
         pontos (list of tuple): Lista de vértices do polígono [(x0,y0), (x1,y1), ...].

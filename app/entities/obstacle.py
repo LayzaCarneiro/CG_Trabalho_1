@@ -1,15 +1,33 @@
+# ═══════════════════════════════════════════════════════════════
+# OBSTÁCULOS DO JOGO
+# ═══════════════════════════════════════════════════════════════
+# Obstáculos que o jogador deve desviar.
+#
+# Demonstra o seguinte requisito:
+# - (a) set_pixel: todo o desenho usa apenas set_pixel
+#
+# Tipos de obstáculos:
+# 1. Rocha (cinza com gradiente radial)
+# 2. Alga marinha (verde ondulante)
+# 3. Coral (laranja ramificado)
+# ═══════════════════════════════════════════════════════════════
 
 from engine.framebuffer import set_pixel
 
 def draw_obstacle(superficie, x, y, tamanho=14, tipo=None):
     """
-    Desenha um obstáculo com múltiplos tipos.
+    Desenha um obstáculo (dispatcher para os 3 tipos).
+    
+    REQUISITO: (a) Acesso direto à memória de vídeo (set_pixel)
+    
+    Todos os pixels são desenhados diretamente usando set_pixel,
+    sem uso de primitivas de alto nível do pygame.
     
     Args:
         superficie: pygame.Surface
-        x, y: posição
-        tamanho: tamanho do obstáculo
-        tipo: tipo de obstáculo (0 = rocha, 1 = alga, 2 = coral)
+        x, y: posição central do obstáculo
+        tamanho: raio aproximado do obstáculo
+        tipo: tipo de obstáculo (0=rocha, 1=alga, 2=coral)
     """
     # Se tipo não for especificado, usa rocha (padrão)
     if tipo is None:
@@ -27,7 +45,14 @@ def draw_obstacle(superficie, x, y, tamanho=14, tipo=None):
 
 
 def draw_rock(superficie, x, y, tamanho=14):
-    """Rocha cinza com textura e sombreado"""
+    """
+    Desenha uma rocha com gradiente radial para volume.
+    
+    REQUISITO: (a) set_pixel direto
+    
+    Técnica: gradiente radial baseado em distância euclidiana.
+    Efeito visual: rocha com volume (claro no centro, escuro nas bordas).
+    """
     for dy in range(-tamanho, tamanho + 1):
         for dx in range(-tamanho, tamanho + 1):
             dist = dx*dx + dy*dy
@@ -44,7 +69,14 @@ def draw_rock(superficie, x, y, tamanho=14):
 
 
 def draw_seaweed(superficie, x, y, tamanho=14):
-    """Alga ondulante com padrão de folhas"""
+    """
+    Desenha alga marinha ondulante com padrão de listras.
+    
+    REQUISITO: (a) set_pixel direto
+    
+    Técnica: forma elíptica com largura variável usando sin().
+    Efeito visual: alga com movimento/ondulação estática.
+    """
     import math
     for dy in range(-tamanho, tamanho + 1):
         for dx in range(-tamanho, tamanho + 1):
@@ -68,7 +100,14 @@ def draw_seaweed(superficie, x, y, tamanho=14):
 
 
 def draw_coral(superficie, x, y, tamanho=14):
-    """Coral em forma de árvore/ramificações"""
+    """
+    Desenha coral ramificado em forma de árvore.
+    
+    REQUISITO: (a) set_pixel direto
+    
+    Técnica: tronco central + ramificações diagonais.
+    Efeito visual: estrutura orgânica ramificada.
+    """
     import math
     for dy in range(-tamanho, tamanho + 1):
         for dx in range(-tamanho, tamanho + 1):

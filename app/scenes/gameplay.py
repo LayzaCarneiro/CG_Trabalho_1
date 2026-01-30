@@ -1,8 +1,29 @@
 # -*- coding: utf-8 -*-
-"""
-Jangada renderizada com set_pixel e gradiente de duas cores marrons.
-Controle WASD e coleta de peixes.
-"""
+# ═══════════════════════════════════════════════════════════════
+# GAMEPLAY - CENA PRINCIPAL DO JOGO
+# ═══════════════════════════════════════════════════════════════
+# Gameplay principal do jogo "Jangada das Estrelas".
+#
+# Demonstra TODOS os requisitos principais:
+# - (a) set_pixel: todo o desenho usa apenas set_pixel
+# - (b) Primitivas: jangada, peixe, obstáculos
+# - (c) Preenchimento: gradientes na jangada e peixe
+# - (d) Transformações: rotação da jangada ao colidir
+# - (e) Animação: rotação 360°, peixe balançando, HUD pulsante
+# - (f) Viewport: câmera segue jangada em mundo grande
+# - (g) Clipping: minimapa usa Cohen-Sutherland
+# - (i) Interação: controle WASD do jogador
+# - (j) Menu: transição para game over e vitória
+#
+# Mecânicas:
+# - Controle WASD para mover jangada
+# - Colete peixes para ganhar pontos
+# - Desvie de obstáculos (perde vida)
+# - Câmera segue o jogador (viewport)
+# - Minimapa mostra mundo inteiro
+# - Vitória: 30 pontos
+# - Game over: 0 vidas
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 import sys
@@ -21,6 +42,22 @@ from app.scenes.victory import run_victory
 from assets.music_manager import music_manager
 
 def main():
+    """
+    Loop principal do gameplay.
+    
+    SISTEMA DE VIEWPORT (Requisito f):
+    - Mundo: 3000x3000 pixels (grande)
+    - Tela: 1000x800 pixels (viewport)
+    - Câmera: segue a jangada centralizando-a na tela
+    
+    ANIMAÇÕES (Requisito e):
+    - Rotação 360° da jangada ao colidir (60 frames)
+    - Peixe balançando verticalmente (movimento senoidal)
+    - HUD pulsante ao perder vida/ganhar ponto
+    
+    INTERAÇÃO (Requisito i):
+    - WASD: movimenta jangada no mundo
+    """
     pygame.init()
     
     # ===== VIEWPORT (TELA) =====

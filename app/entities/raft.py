@@ -1,3 +1,14 @@
+# ═══════════════════════════════════════════════════════════════
+# JANGADA (PLAYER)
+# ═══════════════════════════════════════════════════════════════
+# Representa o jogador no jogo.
+#
+# Demonstra os seguintes requisitos:
+# - (b) Primitivas: polígonos com desenhar_poligono
+# - (c) Preenchimento: scanline_fill_gradiente
+# - (d) Transformações: rotação em torno de pivô ao colidir
+# - (e) Animação: rotação 360° em colisão
+# ═══════════════════════════════════════════════════════════════
 
 import app.constants as constant
 import assets.colors as color
@@ -8,8 +19,23 @@ from engine.fill.scanline import scanline_fill_gradiente, scanline_fill
 
 def draw_raft(superficie, x, y, viewport, angle=0):
     """
-    Desenha uma jangada estilizada vista de cima, tudo dentro do retângulo.
-    Apenas corpo, algumas tábuas e jangadeiro indicado pelo chapéu.
+    Desenha a jangada do jogador com gradiente e detalhes.
+    
+    REQUISITOS:
+    - (b) Primitivas gráficas: polígonos (corpo + proa)
+    - (c) Preenchimento: scanline_fill_gradiente (madeira)
+    - (d) Transformações: rotação em torno do centro (colisão)
+    
+    Estrutura:
+    - Corpo retangular (madeira com gradiente vertical)
+    - Proa triangular (frente da jangada)
+    - Linhas de detalhe (tábuas e mastro)
+    
+    Args:
+        superficie: pygame.Surface
+        x, y: posição do canto superior esquerdo
+        viewport: tupla (xmin, ymin, w, h) para clipping
+        angle: ângulo de rotação em radianos (0 = sem rotação)
     """
     largura_base = constant.RAFT_LARGURA
     comprimento = constant.COMPRIMENTO

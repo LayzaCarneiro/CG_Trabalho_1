@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
-"""
-História introdutória do jogo "Jangadeiro: Dragão do Mar"
-- Mostra a história dos jangadeiros do Ceará
-- Antes do menu do jogo
-"""
+# ═══════════════════════════════════════════════════════════════
+# CENA: HISTÓRIA INTRODUTÓRIA
+# ═══════════════════════════════════════════════════════════════
+# História introdutória do jogo "Jangadeiro: Dragão do Mar".
+#
+# Demonstra os seguintes requisitos:
+# - (a) set_pixel: desenho de céu, mar e estrelas
+# - (b) Primitivas: jangada e peixe
+# - (c) Preenchimento: gradientes e flood fill
+# - (e) Animação: transição de slides
+# - (j) Menu: fluxo antes do menu principal
+#
+# Objetivo:
+# - Apresentar contexto histórico do "Dragão do Mar"
+# - Introduzir o jogador antes do menu principal
+# ═══════════════════════════════════════════════════════════════
 import sys
 import pygame
 import math
@@ -18,9 +29,7 @@ from app.entities.raft import draw_jangada
 from app.entities.fish import draw_fish
 from assets.music_manager import music_manager
 
-# =====================================================
-# Funções auxiliares
-# =====================================================
+# ─── Funções Auxiliares ───
 def draw_waves(surf, y_start, y_end, amplitude=10, wavelength=50, color=(25, 104, 163)):
     """Desenha ondas simples no mar usando flood fill."""
     w = surf.get_width()
@@ -57,9 +66,7 @@ def draw_sand_gradient(surf, y_start, y_end, top_color=color.SAND, bottom_color=
         )
 
 
-# =====================================================
-# História
-# =====================================================
+# ─── Slides da História ───
 slides = [
     {
         "texto": [
@@ -159,9 +166,7 @@ slides = [
     }
 ]
 
-# =====================================================
-# Função principal
-# =====================================================
+# ─── Função Principal ───
 def run_story(superficie):
     w, h = superficie.get_width(), superficie.get_height()
     slide_index = 0

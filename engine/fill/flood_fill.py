@@ -1,21 +1,38 @@
 # -*- coding: utf-8 -*-
-"""
-Flood Fill iterativo (4-conectado) usando set_pixel.
-
-Esta função preenche uma área contida por uma cor de borda (`cor_borda`) 
-com uma cor de preenchimento (`cor_preenchimento`) em uma superfície Pygame.
-
-O algoritmo é baseado em pilha (DFS iterativo) e considera somente os 
-vizinhos 4-direcionais: cima, baixo, esquerda, direita.
-"""
+# ═══════════════════════════════════════════════════════
+# PREENCHIMENTO - FLOOD FILL
+# ═══════════════════════════════════════════════════════
+# Implementação do algoritmo Flood Fill iterativo
+# (Requisito c - Preenchimento de Regiões: Flood Fill)
+#
+# Algoritmo baseado em pilha (DFS) que preenche áreas
+# delimitadas por uma cor de borda específica.
+# Utiliza conectividade 4-direcional (cima, baixo, esq, dir).
+# ═══════════════════════════════════════════════════════
 
 from engine.framebuffer import set_pixel
 
-# =========================
-# Flood Fill (4-conectado)
-# =========================
-
-def flood_fill_iterativo(superficie, x, y, cor_preenchimento, cor_borda):    
+# ─── Flood Fill (4-conectado) ───
+def flood_fill_iterativo(superficie, x, y, cor_preenchimento, cor_borda):
+    """
+    Preenche uma área delimitada por bordas com uma cor específica.
+    
+    REQUISITO: (c) Preenchimento de Regiões - Flood Fill
+    
+    Algoritmo:
+    1. Inicia em um ponto (x, y)
+    2. Preenche o pixel se não for borda ou já preenchido
+    3. Adiciona vizinhos na pilha (4-direções)
+    4. Repete até pilha vazia
+    
+    Características:
+    - Iterativo (evita estouro de pilha)
+    - 4-conectado (não preenche diagonais)
+    - Respeita limites da superfície
+    
+    Usado na tela de abertura para preencher figuras desenhadas.    
+    """
+    
     """
     Preenche recursivamente uma área com cor, evitando ultrapassar bordas.
 

@@ -1,8 +1,19 @@
 # -*- coding: utf-8 -*-
-"""
-Tela inicial do jogo "Jangada das Estrelas".
-Todo o desenho usa apenas set_pixel (via bresenham, círculo, elipse, scanline).
-"""
+# ═══════════════════════════════════════════════════════════════
+# MENU PRINCIPAL
+# ═══════════════════════════════════════════════════════════════
+# Tela inicial com botões de interação.
+#
+# Demonstra os seguintes requisitos:
+# - (b) Primitivas: círculos (sol), elipses (ondas)
+# - (i) Interação: detecção de clique do mouse em botões
+# - (j) Menu: navegação entre cenas (Iniciar/Como Jogar/Sair)
+#
+# Botões:
+# - INICIAR: começa o jogo
+# - COMO JOGAR: mostra instruções
+# - SAIR: fecha o jogo
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 import assets.colors as color
@@ -13,32 +24,32 @@ from assets.music_manager import music_manager
 
 def draw_title_scene(surf, w, h):
     """
-    Sol, horizonte e ondas usando retas, circunferência e elipse.
+    Desenha cena decorativa do menu (sol + horizonte + ondas).
+    
+    REQUISITO: (b) Primitivas gráficas (círculos e elipses)
     
     Args:
-        surf: pygame.Surface onde desenhar.
-        w: largura da tela.
-        h: altura da tela.
+        surf: pygame.Surface
+        w: largura da tela
+        h: altura da tela
     """
 
-# ======================================
-# FUNÇÃO PRINCIPAL
-# ======================================
+# ─── Função Principal ───
 def run_menu(superficie):
     """
-    Roda a tela inicial. Retorna 'iniciar' ou 'sair'.
-    Toda a renderização usa apenas set_pixel (através dos algoritmos do engine).
-
-    Executa a tela inicial do jogo com botões:
-    - INICIAR
-    - COMO JOGAR
-    - SAIR
-
+    Executa o menu principal do jogo.
+    
+    REQUISITOS:
+    - (i) Interação com Usuário: cliques do mouse em botões
+    - (j) Menu: navegação entre cenas
+    
+    Todo o desenho usa apenas set_pixel (via primitivas do engine).
+    
     Args:
-        superficie: pygame.Surface principal do jogo.
-
-    Retorna:
-        String indicando a ação escolhida: 'iniciar' ou 'sair'.
+        superficie: pygame.Surface principal
+    
+    Returns:
+        str: 'iniciar' ou 'sair'
     """
     w = superficie.get_width()
     h = superficie.get_height()

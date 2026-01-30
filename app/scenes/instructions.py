@@ -1,15 +1,23 @@
 # app/scenes/instructions.py
 # -*- coding: utf-8 -*-
-"""
-Tela de instruções do jogo "Jangadeiro: Dragão do Mar".
-
-Inclui:
-- Gradiente de fundo
-- Ondas decorativas
-- Peixinhos decorativos
-- Caixas de instruções com título e texto
-- Botão "VOLTAR" interativo
-"""
+# ═══════════════════════════════════════════════════════════════
+# CENA: COMO JOGAR (INSTRUÇÕES)
+# ═══════════════════════════════════════════════════════════════
+# Tela de instruções do jogo "Jangadeiro: Dragão do Mar".
+#
+# Demonstra os seguintes requisitos:
+# - (b) Primitivas: retas e círculos decorativos
+# - (c) Preenchimento: scanline_fill e gradientes
+# - (i) Interação: botão "VOLTAR" (clique ou ESC)
+# - (j) Menu: navegação de retorno
+#
+# Elementos:
+# - Gradiente de fundo
+# - Ondas decorativas
+# - Peixinhos decorativos
+# - Caixas de instruções
+# - Botão interativo de voltar
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 import math
@@ -54,6 +62,10 @@ def draw_decor_peixes(surf, largura, altura):
 def run_instructions(superficie):
     """
     Executa a tela de instruções do jogo.
+    
+    REQUISITOS:
+    - (i) Interação: clique no botão ou tecla ESC
+    - (j) Menu: retorna à tela anterior
     
     Args:
         superficie: pygame.Surface principal do jogo.
