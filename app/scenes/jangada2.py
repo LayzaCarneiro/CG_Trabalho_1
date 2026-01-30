@@ -13,54 +13,98 @@ from engine.framebuffer import set_pixel
 from engine.raster.line import bresenham, desenhar_poligono
 from engine.fill.scanline import scanline_fill, scanline_fill_gradiente
 from engine.math.auxiliary import interpolar_cor
+from engine.geometry.transform import rotacionar_pontos_em_torno_de
+from engine.collision import check_collision_raft_obstacle
+from app.scenes.game_over import run_game_over
+from app.scenes.victory import run_victory
 from engine.geometry.cohen_sutherland import draw_line
-from engine.raster.line import bresenham
 
-def draw_raft(superficie, x, y, viewport):
+def _set_pixel_scaled(superficie, base_x, base_y, local_x, local_y, cor, scale):
+    """
+    Desenha um "pixel lógico" como bloco scale×scale usando só set_pixel.
+    base_x, base_y = canto superior esquerdo do elemento; local_x, local_y = offset.
+    """
+    if scale <= 1:
+        set_pixel(superficie, base_x + local_x, base_y + local_y, cor)
+        return
+    for sy in range(scale):
+        for sx in range(scale):
+            set_pixel(
+                superficie,
+                base_x + local_x * scale + sx,
+                base_y + local_y * scale + sy,
+                cor,
+            )
+
+
+# Dimensões da jangada (usadas em draw_raft e colisão)
+RAFT_LARGURA = 50
+RAFT_ALTURA = 85  # altura_proa (15) + comprimento (70)
+ALTURA_PROA = 15
+COMPRIMENTO = 70
+
+def draw_raft(superficie, x, y, viewport, angle=0):
     """
     Desenha uma jangada estilizada com gradiente marrom.
-    Forma: trapézio alongado (vista de cima) com proa.
+    angle: rotação em radianos em torno do centro da jangada (0 = sem rotação).
     """
-    # Dimensões da jangada
-    largura_base = 50
+    largura_base = RAFT_LARGURA
     largura_proa = 30
-    comprimento = 70
-    altura_proa = 15
-    
+    comprimento = COMPRIMENTO
+    altura_proa = ALTURA_PROA
+
+    cx = x + largura_base // 2
+    cy = y + altura_proa + comprimento // 2
+
     # Corpo principal (retângulo alongado)
     corpo_pontos = [
         (x, y + altura_proa),
         (x + largura_base, y + altura_proa),
         (x + largura_base, y + altura_proa + comprimento),
-        (x, y + altura_proa + comprimento)
+        (x, y + altura_proa + comprimento),
     ]
-    
-    # Preenche corpo com gradiente vertical (marrom escuro → claro)
-    scanline_fill_gradiente(
-        superficie, 
-        corpo_pontos, 
-        color.WOOD_DARK, 
-        color.WOOD_LIGHT, 
-        direcao='vertical'
-    )
-    
-    # Contorno do corpo
-    desenhar_poligono(superficie, corpo_pontos, color.DETAIL_COLOR)
-    
+
     # Proa (triângulo na frente)
     proa_pontos = [
         (x + (largura_base - largura_proa) // 2, y),
         (x + (largura_base + largura_proa) // 2, y),
-        (x + largura_base // 2, y + altura_proa)
+        (x + largura_base // 2, y + altura_proa),
     ]
-    
-    # Preenche proa com gradiente (mais escuro na ponta)
+
+    # Pontos das linhas de detalhe (tábuas e mastro)
+    linhas_detalhe = []
+    for i in range(3):
+        y_tabua = y + altura_proa + 15 + i * 18
+        linhas_detalhe.append(((x + 5, y_tabua), (x + largura_base - 5, y_tabua)))
+    linhas_detalhe.append(((cx - 3, cy - 5), (cx + 3, cy - 5)))
+    linhas_detalhe.append(((cx, cy - 5), (cx, cy + 5)))
+
+    if angle != 0:
+        corpo_pontos = rotacionar_pontos_em_torno_de(corpo_pontos, cx, cy, angle)
+        proa_pontos = rotacionar_pontos_em_torno_de(proa_pontos, cx, cy, angle)
+        linhas_rot = []
+        for (p0, p1) in linhas_detalhe:
+            pts = rotacionar_pontos_em_torno_de([p0, p1], cx, cy, angle)
+            linhas_rot.append((tuple(pts[0]), tuple(pts[1])))
+        linhas_detalhe = linhas_rot
+
+    # Preenche corpo com gradiente
+    scanline_fill_gradiente(
+        superficie,
+        corpo_pontos,
+        color.WOOD_DARK,
+        color.WOOD_LIGHT,
+        direcao="vertical",
+    )
+    desenhar_poligono(superficie, corpo_pontos, color.DETAIL_COLOR)
+
+    # Preenche proa com gradiente
     scanline_fill_gradiente(
         superficie,
         proa_pontos,
         color.WOOD_DARK,
         color.WOOD_LIGHT,
-        direcao='vertical'
+        direcao="vertical",
     )
     
     # Contorno da proa
@@ -94,11 +138,17 @@ def draw_raft(superficie, x, y, viewport):
         color.DETAIL_COLOR,
         viewport=viewport
     )
+    desenhar_poligono(superficie, proa_pontos, color.DETAIL_COLOR)
+
+    # Detalhes: tábuas e mastro
+    for (x0, y0), (x1, y1) in linhas_detalhe:
+        bresenham(superficie, x0, y0, x1, y1, color.DETAIL_COLOR)
 
 
-def draw_fish_icon(superficie, x, y, tamanho=8):
+def draw_fish_icon(superficie, x, y, tamanho=8, scale=1):
     """
     Desenha um pequeno ícone de peixe para o contador.
+    scale: 1 = normal; 2 = cada pixel vira bloco 2x2 (só set_pixel).
     """
     # Corpo pequeno (elipse)
     a = tamanho // 2
@@ -113,7 +163,7 @@ def draw_fish_icon(superficie, x, y, tamanho=8):
                     else:
                         t_grad = (1 - t) * 2
                     cor = interpolar_cor(color.FISH_BLUE, color.FISH_WHITE, t_grad)
-                    set_pixel(superficie, x + dx, y + dy, cor)
+                    _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
     
     # Cauda
     cauda_pontos = [
@@ -121,11 +171,17 @@ def draw_fish_icon(superficie, x, y, tamanho=8):
         (x - a - 3, y - 2),
         (x - a - 3, y + 2)
     ]
-    scanline_fill(superficie, cauda_pontos, color.FISH_BLUE)
-    desenhar_poligono(superficie, cauda_pontos, color.FISH_OUTLINE)
+    if scale == 1:
+        scanline_fill(superficie, cauda_pontos, color.FISH_BLUE)
+        desenhar_poligono(superficie, cauda_pontos, color.FISH_OUTLINE)
+    else:
+        cauda_esc = [(x + (px - x) * scale, y + (py - y) * scale) for px, py in cauda_pontos]
+        scanline_fill(superficie, cauda_esc, color.FISH_BLUE)
+        desenhar_poligono(superficie, cauda_esc, color.FISH_OUTLINE)
 
 
-def draw_heart_icon(superficie, x, y, tamanho=6):
+def draw_heart_icon(superficie, x, y, tamanho=6, scale=1):
+    """Ícone de coração; scale=2 desenha cada pixel como bloco 2×2 (só set_pixel)."""
     for dy in range(tamanho * 2):
         for dx in range(tamanho * 2):
             nx = (dx - tamanho) / tamanho
@@ -133,15 +189,14 @@ def draw_heart_icon(superficie, x, y, tamanho=6):
             val = (nx*nx + ny*ny - 1)**3 - nx*nx*ny*ny*ny
             if val <= 0:
                 cor = color.HEART_RED if ny < 0 else color.HEART_DARK
-                set_pixel(superficie, x + dx, y + dy, cor)
+                _set_pixel_scaled(superficie, x, y, dx, dy, cor, scale)
 
 
-def draw_simple_text(superficie, texto, x, y, cor):
+def draw_simple_text(superficie, texto, x, y, cor, scale=1):
     """
     Desenha texto simples usando apenas set_pixel.
-    Versão minimalista para números e letras básicas.
+    scale: 1 = normal; 2 = cada pixel vira bloco 2×2.
     """
-    # Fonte 3x5 simplificada para números e algumas letras
     chars = {
         '0': ['XXX', 'X X', 'X X', 'X X', 'XXX'],
         '1': [' X ', 'XX ', ' X ', ' X ', 'XXX'],
@@ -164,8 +219,8 @@ def draw_simple_text(superficie, texto, x, y, cor):
             for row, line in enumerate(pattern):
                 for col, pixel in enumerate(line):
                     if pixel == 'X':
-                        set_pixel(superficie, x + dx + col, y + row, cor)
-        dx += 4  # Espaço entre caracteres
+                        _set_pixel_scaled(superficie, x, y, dx + col, row, cor, scale)
+        dx += 4 * scale  # Espaço entre caracteres
 
 
 def draw_fish(superficie, x, y):
@@ -320,28 +375,8 @@ def draw_obstacle(superficie, x, y, tamanho=14):
                 set_pixel(superficie, x + dx, y + dy, cor)
 
 
-def check_collision_obstacle(raft_x, raft_y, obs_x, obs_y):
-    raft_w = 50
-    raft_h = 85
-
-    obs_r = 14
-
-    raft_left = raft_x
-    raft_right = raft_x + raft_w
-    raft_top = raft_y
-    raft_bottom = raft_y + raft_h
-
-    obs_left = obs_x - obs_r
-    obs_right = obs_x + obs_r
-    obs_top = obs_y - obs_r
-    obs_bottom = obs_y + obs_r
-
-    return not (
-        raft_right < obs_left or
-        raft_left > obs_right or
-        raft_bottom < obs_top or
-        raft_top > obs_bottom
-    )
+# Raio do obstáculo (pedra) para colisão (usado com engine.collision)
+OBSTACLE_RADIUS = 14
 
 
 def draw_minimap(
@@ -422,152 +457,174 @@ def main():
     WORLD_WIDTH = 3000
     WORLD_HEIGHT = 3000
 
-    # ===== POSIÇÕES NO MUNDO =====
-    raft_x = WORLD_WIDTH // 2
-    raft_y = WORLD_HEIGHT // 2
-    speed = 4
+    while True:
+        # ===== POSIÇÕES NO MUNDO (reset a cada "jogar novamente") =====
+        raft_x = WORLD_WIDTH // 2
+        raft_y = WORLD_HEIGHT // 2
+        speed = 4
 
-    # Peixe no mundo
-    fish_x = random.randint(100, WORLD_WIDTH - 100)
-    fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
-    fish_y = fish_y_base
+        fish_x = random.randint(100, WORLD_WIDTH - 100)
+        fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
+        fish_y = fish_y_base
 
-    # Animação do peixe
-    fish_animation_offset = 0.0
-    fish_animation_speed = 0.15
-    fish_animation_range = 8
+        fish_animation_offset = 0.0
+        fish_animation_speed = 0.15
+        fish_animation_range = 8
 
-    # Obstáculos no mundo
-    NUM_OBSTACULOS = 5
-    obstaculos = []
-    while len(obstaculos) < NUM_OBSTACULOS:
-        ox = random.randint(100, WORLD_WIDTH - 100)
-        oy = random.randint(100, WORLD_HEIGHT - 100)
+        NUM_OBSTACULOS = 5
+        obstaculos = []
+        while len(obstaculos) < NUM_OBSTACULOS:
+            ox = random.randint(100, WORLD_WIDTH - 100)
+            oy = random.randint(100, WORLD_HEIGHT - 100)
+            if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
+                continue
+            obstaculos.append([ox, oy])
 
-        if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
-            continue
+        pontos = 0
+        vidas = 3
 
-        obstaculos.append([ox, oy])
+        rotation_frames_left = 0
+        ROTATION_TOTAL_FRAMES = 60
 
-    pontos = 0
-    vidas = 3
+        hud_scale_effect_frames = 0
+        HUD_SCALE_EFFECT_FRAMES = 60
 
-    running = True
-    while running:
-        screen.fill(color.SEA_COLOR)
+        running = True
+        while running:
+            screen.fill(color.SEA_COLOR)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            # ===== INPUT (MOVE NO MUNDO) — desabilitado durante rotação =====
+            if rotation_frames_left <= 0:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_w]:
+                    raft_y -= speed
+                if keys[pygame.K_s]:
+                    raft_y += speed
+                if keys[pygame.K_a]:
+                    raft_x -= speed
+                if keys[pygame.K_d]:
+                    raft_x += speed
+
+            # Limites do MUNDO
+            raft_x = max(0, min(WORLD_WIDTH - RAFT_LARGURA, raft_x))
+            raft_y = max(0, min(WORLD_HEIGHT - RAFT_ALTURA, raft_y))
+
+            # ===== CÂMERA (VIEWPORT) =====
+            camera_x = raft_x - WIDTH // 2
+            camera_y = raft_y - HEIGHT // 2
+
+            camera_x = max(0, min(WORLD_WIDTH - WIDTH, camera_x))
+            camera_y = max(0, min(WORLD_HEIGHT - HEIGHT, camera_y))
+
+            viewport = (camera_x, camera_y, WIDTH, HEIGHT)
+
+            # ===== ANIMAÇÃO DO PEIXE =====
+            fish_animation_offset += fish_animation_speed
+            fish_y = fish_y_base + math.sin(fish_animation_offset) * fish_animation_range
+
+            # ===== COLISÕES (EM COORDENADAS DO MUNDO) =====
+            if check_collision(raft_x, raft_y, fish_x, fish_y_base):
+                pontos += 1
+                fish_x = random.randint(100, WORLD_WIDTH - 100)
+                fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
+                fish_animation_offset = 0.0
+                hud_scale_effect_frames = HUD_SCALE_EFFECT_FRAMES  # Reação: HUD em escala maior
+
+            # Colisão jangada × pedra (engine): perde vida e inicia rotação 360°
+            if rotation_frames_left <= 0:
+                for obs in obstaculos[:]:
+                    if check_collision_raft_obstacle(
+                        raft_x, raft_y, RAFT_LARGURA, RAFT_ALTURA,
+                        obs[0], obs[1], OBSTACLE_RADIUS
+                    ):
+                        vidas -= 1
+                        obstaculos.remove(obs)
+                        rotation_frames_left = ROTATION_TOTAL_FRAMES
+                        hud_scale_effect_frames = HUD_SCALE_EFFECT_FRAMES  # Reação: HUD em escala maior
+                        break
+
+            # Avanço da animação de rotação (0 → 2π)
+            if rotation_frames_left > 0:
+                rotation_frames_left -= 1
+
+            # Avanço do efeito de escala do HUD (~1 s)
+            if hud_scale_effect_frames > 0:
+                hud_scale_effect_frames -= 1
+
+            if vidas <= 0:
                 running = False
+                resultado = "GAME OVER"
+            elif pontos >= 5:
+                running = False
+                resultado = "VITORIA"
 
-        # ===== INPUT (MOVE NO MUNDO) =====
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            raft_y -= speed
-        if keys[pygame.K_s]:
-            raft_y += speed
-        if keys[pygame.K_a]:
-            raft_x -= speed
-        if keys[pygame.K_d]:
-            raft_x += speed
-
-        # Limites do MUNDO
-        raft_x = max(0, min(WORLD_WIDTH - 50, raft_x))
-        raft_y = max(0, min(WORLD_HEIGHT - 85, raft_y))
-
-        # ===== CÂMERA (VIEWPORT) =====
-        camera_x = raft_x - WIDTH // 2
-        camera_y = raft_y - HEIGHT // 2
-
-        camera_x = max(0, min(WORLD_WIDTH - WIDTH, camera_x))
-        camera_y = max(0, min(WORLD_HEIGHT - HEIGHT, camera_y))
-
-        viewport = (camera_x, camera_y, WIDTH, HEIGHT)
-
-        # ===== ANIMAÇÃO DO PEIXE =====
-        fish_animation_offset += fish_animation_speed
-        fish_y = fish_y_base + math.sin(fish_animation_offset) * fish_animation_range
-
-        # ===== COLISÕES (EM COORDENADAS DO MUNDO) =====
-        if check_collision(raft_x, raft_y, fish_x, fish_y_base):
-            pontos += 1
-            fish_x = random.randint(100, WORLD_WIDTH - 100)
-            fish_y_base = random.randint(100, WORLD_HEIGHT - 100)
-            fish_animation_offset = 0.0
-
-        for obs in obstaculos[:]:
-            if check_collision_obstacle(raft_x, raft_y, obs[0], obs[1]):
-                vidas -= 1
-                obstaculos.remove(obs)
-                break
-
-        if vidas <= 0:
-            running = False
-            resultado = "GAME OVER"
-        elif pontos >= 5:
-            running = False
-            resultado = "VITORIA"
-
-        # ===== DESENHO (MUNDO → VIEWPORT) =====
-        draw_waves_around_fish(
-            screen,
-            fish_x - camera_x,
-            fish_y_base - camera_y,
-            fish_animation_offset
-        )
-
-        draw_fish(
-            screen,
-            fish_x - camera_x,
-            int(fish_y - camera_y)
-        )
-
-        for obs in obstaculos:
-            draw_obstacle(
+            # ===== DESENHO (MUNDO → VIEWPORT) =====
+            draw_waves_around_fish(
                 screen,
-                obs[0] - camera_x,
-                obs[1] - camera_y
+                fish_x - camera_x,
+                fish_y_base - camera_y,
+                fish_animation_offset
             )
 
-        draw_raft(
-            screen,
-            raft_x - camera_x,
-            raft_y - camera_y,
-            viewport
-        )
+            draw_fish(
+                screen,
+                fish_x - camera_x,
+                int(fish_y - camera_y)
+            )
 
-        draw_minimap(
-            screen,
-            raft_x, raft_y,
-            fish_x, fish_y_base,
-            obstaculos,
-            camera_x, camera_y,
-            WORLD_WIDTH, WORLD_HEIGHT,
-            WIDTH, HEIGHT
-        )
+            for obs in obstaculos:
+                draw_obstacle(
+                    screen,
+                    obs[0] - camera_x,
+                    obs[1] - camera_y
+                )
 
+            # Ângulo de rotação ao colidir com pedra (0 → 2π)
+            raft_angle = 0.0
+            if rotation_frames_left > 0:
+                raft_angle = (ROTATION_TOTAL_FRAMES - rotation_frames_left) / ROTATION_TOTAL_FRAMES * 2 * math.pi
+            draw_raft(
+                screen,
+                raft_x - camera_x,
+                raft_y - camera_y,
+                viewport,
+                angle=raft_angle
+            )
 
-        # ===== HUD (NÃO USA CÂMERA) =====
-        draw_heart_icon(screen, 10, 28, tamanho=5)
-        draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255))
+            draw_minimap(
+                screen,
+                raft_x, raft_y,
+                fish_x, fish_y_base,
+                obstaculos,
+                camera_x, camera_y,
+                WORLD_WIDTH, WORLD_HEIGHT,
+                WIDTH, HEIGHT
+            )
 
-        draw_fish_icon(screen, 10, 10, tamanho=10)
-        draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255))
+            # ===== HUD (NÃO USA CÂMERA) =====
+            hud_scale = 2 if hud_scale_effect_frames > 0 else 1
+            draw_heart_icon(screen, 10, 28, tamanho=5, scale=hud_scale)
+            draw_simple_text(screen, str(vidas), 28, 30, (255, 255, 255), scale=hud_scale)
 
-        pygame.display.flip()
-        clock.tick(60)
+            draw_fish_icon(screen, 10, 10, tamanho=10, scale=hud_scale)
+            draw_simple_text(screen, str(pontos), 25, 10, (255, 255, 255), scale=hud_scale)
 
-    # ===== TELA FINAL =====
-    screen.fill(color.SEA_COLOR)
-    if resultado == "GAME OVER":
-        draw_simple_text(screen, "0", WIDTH//2 - 6, HEIGHT//2, color.GAME_OVER_RED)
-        draw_simple_text(screen, "P", WIDTH//2 - 6, HEIGHT//2 + 10, color.GAME_OVER_RED)
-    else:
-        draw_simple_text(screen, "5", WIDTH//2 - 6, HEIGHT//2, color.WIN_GREEN)
-        draw_simple_text(screen, "P", WIDTH//2 - 6, HEIGHT//2 + 10, color.WIN_GREEN)
+            pygame.display.flip()
+            clock.tick(60)
 
-    pygame.display.flip()
-    pygame.time.delay(2500)
+        # ===== TELA FINAL: Game Over ou Vitória =====
+        if resultado == "GAME OVER":
+            escolha = run_game_over(screen)
+        else:
+            escolha = run_victory(screen)
+
+        if escolha == "sair":
+            break
+        # "jogar_novamente" → loop continua e estado é resetado no início do while True
 
     pygame.quit()
     sys.exit()
