@@ -59,7 +59,7 @@ class MusicManager:
         music_path = self.music_files.get(music_name)
         
         if music_path is None:
-            print(f"⚠️  Música '{music_name}' não encontrada. Coloque o arquivo em assets/music/")
+            print(f"Músiquinha '{music_name}' não encontrada. Coloque o arquivo em assets/music/ a coloque o titulo do arquivo que estar na pasta")
             return
         
         try:
@@ -75,7 +75,7 @@ class MusicManager:
             print(f"♪ Tocando: {music_name}")
             
         except pygame.error as e:
-            print(f"⚠️  Erro ao tocar música '{music_name}': {e}")
+            print(f"Erro ao tocar música '{music_name}' verifique o tipo de arquivo e veja se estar em MP3 como preferencia do projeto: {e}")
     
     def stop(self, fade_ms=500):
         """
