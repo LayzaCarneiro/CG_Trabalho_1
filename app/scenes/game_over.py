@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-Tela de consolação quando o jogador perde todas as vidas.
-Mesmo tom de azul do menu, mensagem em vermelho, botões amarelos como no menu.
-"""
+# ═══════════════════════════════════════════════════════════════
+# CENA: GAME OVER
+# ═══════════════════════════════════════════════════════════════
+# Tela de consolação quando o jogador perde todas as vidas.
+#
+# Demonstra os seguintes requisitos:
+# - (i) Interação: botões clicáveis
+# - (j) Menu: fluxo de decisão (jogar novamente / sair)
+#
+# Estilo visual:
+# - Fundo azul (mesmo do menu)
+# - Mensagem em vermelho
+# - Botões amarelos
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 from app.scenes.auxiliary_functions import draw_text, draw_button, ponto_em_retangulo
@@ -17,7 +27,14 @@ BTN_TEXT = (60, 50, 40)
 
 def run_game_over(superficie):
     """
-    Exibe a tela "VOCÊ PERDEU". Retorna 'jogar_novamente' ou 'sair'.
+    Exibe a tela "VOCÊ PERDEU".
+    
+    REQUISITOS:
+    - (i) Interação: cliques do mouse ou ESC
+    - (j) Menu: retorna opção escolhida
+    
+    Returns:
+        'jogar_novamente' ou 'sair'
     """
     w = superficie.get_width()
     h = superficie.get_height()

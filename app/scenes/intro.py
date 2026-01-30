@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Cena de introdução do jogo.
-
-Exibe:
-- Céu com textura
-- Mar com gradiente e areia
-- Jangada balançando suavemente
-- Personagem andando em direção à jangada
-- Transição suave para o menu
-"""
+# ═══════════════════════════════════════════════════════════════
+# CENA DE INTRODUÇÃO
+# ═══════════════════════════════════════════════════════════════
+# Cena inicial que apresenta o jogo com animação.
+#
+# Demonstra os seguintes requisitos:
+# - (b) Primitivas: polígonos (jangada, personagem)
+# - (c) Preenchimento: scanline_fill (mar, areia), flood_fill (personagem)
+# - (e) Animação: jangada balançando, personagem andando
+# - (h) Textura: céu e areia com textura
+#
+# Elementos da cena:
+# - Céu com textura
+# - Mar com gradiente
+# - Areia texturizada
+# - Jangada balançando suavemente (animação)
+# - Personagem caminhando em direção à jangada (animação)
+# - Transição suave para o menu
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 import math
@@ -23,17 +32,21 @@ from app.entities.raft import draw_jangada
 from assets.music_manager import music_manager
  
 
-# ======================================
-# FUNÇÕES AUXILIARES
-# ======================================
+# ─── Funções Auxiliares ───
 def draw_background(tela, largura, altura, textura_ceu=None, textura_areia=None):
     """
-    Desenha o céu, mar e areia como plano de fundo da cena.
-
+    Desenha o cenário de fundo da introdução.
+    
+    REQUISITOS:
+    - (c) Preenchimento: scanline_fill para mar e areia
+    - (h) Textura: céu e areia texturizados
+    
     Args:
-        tela: pygame.Surface onde desenhar.
-        largura: largura da tela.
-        altura: altura da tela.
+        tela: pygame.Surface
+        largura: largura da tela
+        altura: altura da tela
+        textura_ceu: pygame.Surface com textura do céu (opcional)
+        textura_areia: pygame.Surface com textura da areia (opcional)
     """
     # Céu com textura
     if textura_ceu:

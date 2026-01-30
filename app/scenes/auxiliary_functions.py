@@ -1,17 +1,25 @@
-"""
-Fonte e Utilirários de UI
-
-- Fonte 5x7 baseada em pixels (`set_pixel`) para desenhar letras, números e símbolos.
-- Funções auxiliares para botões e detecção de clique em retângulos.
-"""
+# ═══════════════════════════════════════════════════════════════
+# UTILITÁRIOS DE UI E TEXTO
+# ═══════════════════════════════════════════════════════════════
+# Conjunto de funções auxiliares para UI e texto no jogo.
+#
+# Demonstra os seguintes requisitos:
+# - (a) set_pixel: fonte e desenhos pixel a pixel
+# - (b) Primitivas: polígonos e linhas em botões
+# - (c) Preenchimento: scanline_fill para botões
+# - (i) Interação: suporte a botões (detecção de clique)
+#
+# Conteúdo:
+# - Fonte 5x7 baseada em pixels
+# - Funções de texto e botões
+# - Funções auxiliares (clique, pixel escalado, randint)
+# ═══════════════════════════════════════════════════════════════
 
 from engine.framebuffer import set_pixel
 from engine.fill.scanline import scanline_fill
 from engine.raster.line import desenhar_poligono
 
-# ======================================
-# 5x7 PIXEL FONT
-# ======================================
+# ─── Fonte 5x7 Pixel ───
 # Cada letra: 7 linhas de 5 pixels ('X' = pixel ligado, ' ' = desligado)
 # Caracteres suportados: letras A-Z, números 0-9, sinais básicos (:-.)
 _FONT = {
@@ -120,6 +128,8 @@ def draw_simple_text(superficie, texto, x, y, cor, scale=1):
 def draw_text(surf, texto, x, y, cor, scale=2):
     """
     Desenha texto com a fonte 5x7 via set_pixel.
+    
+    REQUISITO: (a) Acesso direto por pixel
     """
     dx = 0
     for c in texto:

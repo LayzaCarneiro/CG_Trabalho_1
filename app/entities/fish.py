@@ -1,3 +1,14 @@
+# ═══════════════════════════════════════════════════════════════
+# PEIXE (COLETÁVEL)
+# ═══════════════════════════════════════════════════════════════
+# Representa o item coletável que dá pontos ao jogador.
+#
+# Demonstra os seguintes requisitos:
+# - (a) set_pixel: desenho do corpo com pixels diretos
+# - (b) Primitivas: polígonos (cauda e barbatanas)
+# - (c) Preenchimento: scanline_fill_gradiente
+# - Interpolação de cores: gradiente azul → branco → azul
+# ═══════════════════════════════════════════════════════════════
 
 import math
 import assets.colors as color
@@ -8,8 +19,23 @@ from engine.raster.line import bresenham, desenhar_poligono
 
 def draw_fish(superficie, x, y, cor=color.FISH_BLUE):
     """
-    Desenha um peixe detalhado com gradiente azul e branco.
-    Forma: corpo oval + cauda + barbatanas.
+    Desenha um peixe com gradiente e detalhes anatômicos.
+    
+    REQUISITOS:
+    - (a) set_pixel: corpo oval desenhado pixel a pixel
+    - (b) Primitivas: desenhar_poligono para cauda/barbatanas
+    - (c) Preenchimento: scanline_fill_gradiente
+    
+    Estrutura:
+    - Corpo: elipse com gradiente vertical simétrico (azul→branco→azul)
+    - Cauda: triângulo traseiro
+    - Barbatanas: superior e inferior
+    - Olho: círculo preto
+    
+    Args:
+        superficie: pygame.Surface
+        x, y: posição central do peixe
+        cor: cor base do peixe (padrão: azul)
     """
     
     # Corpo principal (oval alongado)

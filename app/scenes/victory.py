@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-Tela de vitória quando o jogador pega os 5 peixes.
-Mesmo padrão de fonte, cores e botões do menu; mensagem em verde.
-"""
+# ═══════════════════════════════════════════════════════════════
+# CENA: VITÓRIA
+# ═══════════════════════════════════════════════════════════════
+# Tela de vitória quando o jogador alcança a pontuação final.
+#
+# Demonstra os seguintes requisitos:
+# - (i) Interação: botões clicáveis
+# - (j) Menu: fluxo de decisão (jogar novamente / sair)
+#
+# Estilo visual:
+# - Fundo azul (mesmo do menu)
+# - Mensagem em verde
+# - Botões amarelos
+# ═══════════════════════════════════════════════════════════════
 
 import pygame
 from app.scenes.auxiliary_functions import draw_text, draw_button, ponto_em_retangulo
@@ -17,7 +27,14 @@ BTN_TEXT = (60, 50, 40)
 
 def run_victory(superficie):
     """
-    Exibe a tela "VOCÊ VENCEU". Retorna 'jogar_novamente' ou 'sair'.
+    Exibe a tela "VOCÊ VENCEU".
+    
+    REQUISITOS:
+    - (i) Interação: cliques do mouse ou ESC
+    - (j) Menu: retorna opção escolhida
+    
+    Returns:
+        'jogar_novamente' ou 'sair'
     """
     w = superficie.get_width()
     h = superficie.get_height()

@@ -1,3 +1,19 @@
+# ═══════════════════════════════════════════════════════════════
+# MINIMAPA
+# ═══════════════════════════════════════════════════════════════
+# Sistema de minimapa no canto superior direito.
+#
+# Demonstra os seguintes requisitos:
+# - (a) set_pixel: todo o desenho usa apenas set_pixel
+# - (f) Viewport: mostra área visível da câmera no mundo
+# - Visualização top-down do mundo inteiro em escala reduzida
+#
+# Elementos exibidos:
+# - Retângulo branco: viewport (área da câmera)
+# - Quadrado verde: jangada (jogador)
+# - Ponto azul: peixe
+# - Pontos cinza: obstáculos
+# ═══════════════════════════════════════════════════════════════
 
 from engine.framebuffer import set_pixel
 import assets.colors as color
@@ -11,6 +27,25 @@ def draw_minimap(
     WORLD_WIDTH, WORLD_HEIGHT,
     WIDTH, HEIGHT
 ):
+    """
+    Desenha o minimapa com viewport, jogador, peixe e obstáculos.
+    
+    REQUISITOS:
+    - (a) set_pixel: todo o desenho pixel a pixel
+    - (f) Viewport: retângulo branco mostra área visível da câmera
+    
+    O minimapa exibe o mundo inteiro em escala reduzida (180x180px)
+    e marca a posição da viewport atual com um retângulo branco.
+    
+    Args:
+        superficie: pygame.Surface
+        raft_x, raft_y: posição da jangada no mundo
+        fish_x, fish_y: posição do peixe no mundo
+        obstaculos: lista de tuplas (x, y, raio, tipo)
+        camera_x, camera_y: posição da câmera no mundo
+        WORLD_WIDTH, WORLD_HEIGHT: dimensões do mundo
+        WIDTH, HEIGHT: dimensões da viewport (tela)
+    """
     # Tamanho do minimapa
     MAP_W = 180
     MAP_H = 180

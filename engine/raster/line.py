@@ -1,6 +1,22 @@
+# ═══════════════════════════════════════════════════════
+# RASTERIZAÇÃO DE RETAS
+# ═══════════════════════════════════════════════════════
+# Implementação de algoritmos de rasterização de linhas
+# (Requisito b - Primitivas de Rasterização: Linha)
+#
+# Algoritmos implementados:
+# - DDA (Digital Differential Analyzer)
+# - Bresenham (mais eficiente, usado no projeto)
+# ═══════════════════════════════════════════════════════
+
 from engine.framebuffer import set_pixel
 
+# ─── Algoritmo DDA ───
 def dda(superficie, x0, y0, x1, y1, cor):
+    """
+    Algoritmo DDA para rasterização de linhas.
+    Usa aritmética de ponto flutuante.
+    """
     dx = x1 - x0
     dy = y1 - y0
 
@@ -21,10 +37,21 @@ def dda(superficie, x0, y0, x1, y1, cor):
         x += x_inc
         y += y_inc
 
-# =========================
-# Bresenham clássico (retas)
-# =========================
+# ─── Algoritmo de Bresenham ───
 def bresenham(superficie, x0, y0, x1, y1, cor):
+    """
+    Algoritmo de Bresenham para rasterização de linhas.
+    
+    REQUISITO: (b) Primitivas de Rasterização - Linha
+    
+    Mais eficiente que DDA por usar apenas aritmética inteira.
+    Usado em todo o projeto para desenho de linhas e polígonos.
+    
+    Características:
+    - Apenas operações inteiras (sem ponto flutuante)
+    - Suporta linhas em todas as direções
+    - Trata casos especiais (linhas verticais/horizontais)
+    """
     steep = abs(y1 - y0) > abs(x1 - x0)
     if steep:
         x0, y0 = y0, x0
@@ -64,7 +91,14 @@ def bresenham(superficie, x0, y0, x1, y1, cor):
 
         x += 1
 
+# ─── Desenho de Polígonos ───
 def desenhar_poligono(tela, pontos, cor):
+    """
+    Desenha o contorno de um polígono conectando seus vértices.
+    
+    Usado para criar formas complexas no jogo (jangada, obstáculos, etc).
+    Utiliza o algoritmo de Bresenham para cada aresta.
+    """
     n = len(pontos)
     if n < 3:
         return

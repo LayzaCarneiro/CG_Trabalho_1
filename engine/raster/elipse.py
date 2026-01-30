@@ -1,12 +1,48 @@
+# ═══════════════════════════════════════════════════════
+# RASTERIZAÇÃO DE ELIPSES
+# ═══════════════════════════════════════════════════════
+# Implementação do algoritmo de rasterização de elipses
+# (Requisito b - Primitivas de Rasterização: Elipse)
+#
+# Utiliza o algoritmo do ponto médio para elipses,
+# dividido em duas regiões para maior precisão.
+# ═══════════════════════════════════════════════════════
+
 from engine.framebuffer import set_pixel
 
+# ─── Plotagem de 4 Pontos Simétricos ───
 def get_elipse_points(superficie, xc, yc, x, y, cor):
+    """
+    Aproveita a simetria da elipse para plotar 4 pontos de uma vez.
+    
+    A elipse possui simetria em relação aos eixos horizontal e vertical,
+    permitindo plotar 4 pontos para cada cálculo.
+    """
     set_pixel(superficie, xc + x, yc + y, cor)
     set_pixel(superficie, xc - x, yc + y, cor)
     set_pixel(superficie, xc + x, yc - y, cor)
     set_pixel(superficie, xc - x, yc - y, cor)
 
+# ─── Algoritmo do Ponto Médio para Elipse ───
 def draw_elipse(superficie, xc, yc, rx, ry, cor):
+    """
+    Desenha uma elipse usando o algoritmo do ponto médio.
+    
+    REQUISITO: (b) Primitivas de Rasterização - Elipse
+    
+    Características:
+    - Divide o desenho em 2 regiões para precisão
+    - Usa apenas aritmética inteira
+    - Suporta elipses de qualquer proporção
+    
+    Args:
+        xc, yc: Centro da elipse
+        rx: Raio no eixo X
+        ry: Raio no eixo Y
+        cor: Cor da elipse
+    
+    Usado no jogo para: peixes, ondas, elementos decorativos.
+    """
     x = 0
     y = ry
 

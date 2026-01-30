@@ -1,8 +1,19 @@
+# ═══════════════════════════════════════════════════════
+# FRAMEBUFFER - SET PIXEL
+# ═══════════════════════════════════════════════════════
+# Implementação da primitiva básica SET PIXEL (Requisito a)
+# 
+# Este módulo fornece a função fundamental para manipulação
+# de pixels individuais na superfície de desenho.
+# Todas as primitivas gráficas do projeto dependem desta função.
+# ═══════════════════════════════════════════════════════
 
 def set_pixel(superficie, x, y, color):    
     """
     Define a cor de um pixel específico na superfície.
-
+    
+    REQUISITO: (a) Set Pixel - Função primitiva básica
+    
     Args:
         superficie: pygame.Surface onde desenhar
         x, y: coordenadas do pixel (inteiros ou float)

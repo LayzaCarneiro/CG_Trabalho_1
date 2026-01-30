@@ -1,3 +1,17 @@
+# ═══════════════════════════════════════════════════════════════
+# ÍCONES DO HUD
+# ═══════════════════════════════════════════════════════════════
+# Ícones do HUD (pontuação e vidas).
+#
+# Demonstra os seguintes requisitos:
+# - (a) set_pixel: ícones desenhados pixel a pixel
+# - (b) Primitivas: polígonos (cauda do peixe)
+# - (c) Preenchimento: scanline_fill na cauda
+#
+# Ícones:
+# - Peixe: representa pontuação
+# - X vermelho: representa vidas
+# ═══════════════════════════════════════════════════════════════
 
 import assets.colors as color
 from engine.math.auxiliary import interpolar_cor
@@ -7,8 +21,18 @@ from app.scenes.auxiliary_functions import _set_pixel_scaled
 
 def draw_fish_icon(superficie, x, y, tamanho=8, scale=1):
     """
-    Desenha um pequeno ícone de peixe para o contador.
-    scale: 1 = normal; 2 = cada pixel vira bloco 2x2 (só set_pixel).
+    Desenha ícone de peixe para o HUD.
+    
+    REQUISITOS:
+    - (a) set_pixel: corpo desenhado pixel a pixel
+    - (b) Primitivas: desenhar_poligono na cauda
+    - (c) Preenchimento: scanline_fill na cauda
+    
+    Args:
+        superficie: pygame.Surface
+        x, y: posição central
+        tamanho: tamanho do ícone
+        scale: fator de escala (2 = cada pixel vira bloco 2x2)
     """
     # Corpo pequeno (elipse)
     a = tamanho // 2
