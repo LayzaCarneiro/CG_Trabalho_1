@@ -1,6 +1,5 @@
 
 from engine.framebuffer import set_pixel
-import random
 
 def draw_obstacle(superficie, x, y, tamanho=14, tipo=None):
     """

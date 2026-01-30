@@ -58,8 +58,8 @@ def main():
         for tipo in range(3):  # 0=rocha, 1=alga, 2=coral
             for _ in range(NUM_OBSTACULOS_POR_TIPO):
                 while True:
-                    ox = random.randint(100, WORLD_WIDTH - 100)
-                    oy = random.randint(100, WORLD_HEIGHT - 100)
+                    ox = randint(100, WORLD_WIDTH - 100)
+                    oy = randint(100, WORLD_HEIGHT - 100)
                     if abs(ox - fish_x) < 80 and abs(oy - fish_y_base) < 80:
                         continue
                     if any(abs(ox - obs[0]) < 80 and abs(oy - obs[1]) < 80 for obs in obstaculos):
