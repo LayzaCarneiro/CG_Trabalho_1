@@ -16,7 +16,7 @@ class MusicManager:
         """Inicializa o mixer de áudio do pygame."""
         pygame.mixer.init()
         self.current_music = None
-        self.music_volume = 0.5  # Volume padrão (0.0 a 1.0)
+        self.music_volume = 0.0  # Volume padrão (0.0 a 1.0)
         
         # Caminhos das músicas
         self.base_path = os.path.join(os.path.dirname(__file__), "music")
@@ -28,7 +28,7 @@ class MusicManager:
     def _find_music_file(self, name):
         """
         Procura um arquivo de música com o nome dado.
-        Tenta encontrar formatos: .ogg, .mp3, .wav
+        Tenta encontrar formato: mp3
         
         Args:
             name: nome base do arquivo (sem extensão)
@@ -36,7 +36,7 @@ class MusicManager:
         Returns:
             Caminho completo do arquivo ou None se não encontrado
         """
-        extensions = [".ogg", ".mp3", ".wav"]
+        extensions = [".mp3"]
         for ext in extensions:
             filepath = os.path.join(self.base_path, name + ext)
             if os.path.exists(filepath):
