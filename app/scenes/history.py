@@ -5,39 +5,18 @@ História introdutória do jogo "Jangadeiro: Dragão do Mar"
 - Antes do menu do jogo
 """
 import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-
 import pygame
 import math
 import assets.colors as color
-from app.scenes.auxiliary_functions import randint
+from app.scenes.auxiliary_functions import randint, draw_text
+from engine.fill.flood_fill import flood_fill_iterativo
 from engine.framebuffer import set_pixel
 from app.entities.raft import draw_jangada
-from app.scenes.auxiliary_functions import draw_text
 from app.entities.fish import draw_fish
 
 # =====================================================
 # Funções auxiliares
 # =====================================================
-def draw_gradient(surf, top_color, bottom_color):
-    """Cria gradiente vertical."""
-    h = surf.get_height()
-    for y in range(h):
-        r = int(top_color[0] + (bottom_color[0] - top_color[0]) * y / h)
-        g = int(top_color[1] + (bottom_color[1] - top_color[1]) * y / h)
-        b = int(top_color[2] + (bottom_color[2] - top_color[2]) * y / h)
-        for x in range(surf.get_width()):
-            set_pixel(surf, x, y, (r, g, b))
-
-def draw_sun(surf, x, y, r, color):
-    """Desenha sol simples usando bresenham."""
-    for angle in range(0, 360, 5):
-        rad = math.radians(angle)
-        px = int(x + r * math.cos(rad))
-        py = int(y + r * math.sin(rad))
-        set_pixel(surf, px, py, color)
-
 def draw_waves(surf, y_start, y_end, amplitude=10, wavelength=50, color=(25, 104, 163)):
     """Desenha ondas simples no mar."""
     w = surf.get_width()
@@ -112,11 +91,12 @@ slides = [
             "e proteja sua tripulacao dos arrecifes traicoeiros!"
         ],
         "draw_extra": lambda surf, w, h: (
-            # Lua crescente no canto superior direito
+            # Céu: lua crescente no canto superior direito
             [set_pixel(surf, int(w*0.9)+dx, int(h*0.15)+dy, (255, 255, 200)) 
             for dx in range(-20, 21) for dy in range(-20, 21) 
             if dx*dx + dy*dy <= 20*20 and (dx-5)**2 + dy**2 > 15*15],
 
+            # Estrelas
             [
                 [set_pixel(surf, x, y, (255, 255, 255)) or
                 set_pixel(surf, x+1, y, (255,255,255)) or
@@ -127,24 +107,22 @@ slides = [
                 ][0]
                 for _ in range(150)
             ],
-
+            # Mar: gradiente + ondas
             [
-                [set_pixel(surf, x, y, (200, 200, 255)) or
-                set_pixel(surf, x+1, y, (200,200,255)) or
-                set_pixel(surf, x-1, y, (200,200,255)) or
-                set_pixel(surf, x, y+1, (200,200,255)) or
-                set_pixel(surf, x, y-1, (200,200,255))
-                for x, y in [(randint(0, w-1), randint(int(h*0.5), h-1))]
-                ][0]
-                for _ in range(100)
+                # Gradiente vertical do mar até a base da tela
+                [set_pixel(surf, x, y, (
+                    int(25 + (50 - 25) * ((y - int(h*0.6)) / (h - int(h*0.6)))),
+                    int(104 + (150 - 104) * ((y - int(h*0.6)) / (h - int(h*0.6)))),
+                    int(163 + (200 - 163) * ((y - int(h*0.6)) / (h - int(h*0.6))))
+                )) for x in range(w) for y in range(int(h*0.6), h)],
             ],
-    [
-        draw_jangada(surf, int(w*0.2), int(h*0.75), scale=2.5),
-        draw_jangada(surf, int(w*0.5), int(h*0.78), scale=3),
-        draw_jangada(surf, int(w*0.7), int(h*0.74), scale=2),
-        draw_jangada(surf, int(w*0.85), int(h*0.76), scale=2.2)
-    ]
-                    )
+            [
+                draw_jangada(surf, int(w*0.2), int(h*0.75), scale=2.5),
+                draw_jangada(surf, int(w*0.5), int(h*0.78), scale=3),
+                draw_jangada(surf, int(w*0.7), int(h*0.74), scale=2),
+                draw_jangada(surf, int(w*0.85), int(h*0.76), scale=2.2)
+            ]
+        )
     }
 ]
 
@@ -157,8 +135,12 @@ def run_story(superficie):
     clock = pygame.time.Clock()
 
     while slide_index < len(slides):
-        superficie.fill((0,0,0))
-        draw_gradient(superficie, color.SKY, color.SEA)
+        superficie.fill(color.SKY)  # fundo inicial do céu
+
+        # Flood fill do mar
+        flood_fill_iterativo(superficie, x=w//2, y=3*h//4, 
+                            cor_preenchimento=color.SEA, 
+                            cor_borda=color.SKY) 
 
         slide = slides[slide_index]
         y_text = int(h*0.1)
