@@ -243,3 +243,351 @@ Coordenadas 2D são tratadas em forma homogênea: ponto `(x, y)` como vetor `[x,
 - **Transformações:** não desenham; apenas produzem novas listas de pontos (ou matrizes). Quem desenha são as funções de rasterização e preenchimento aplicadas aos pontos transformados, sempre terminando em `set_pixel`.
 
 Este documento cobre parâmetros, retornos e papel de cada método da engine e das transformações, com foco no uso de `set_pixel` em todos os renderizadores.
+
+---
+
+## 8. Sistema de Telas e Navegação
+
+O jogo "Jangada das Estrelas" possui um sistema de telas interconectadas. Todas as telas utilizam renderização exclusiva via `set_pixel`, exceto o preenchimento de fundo (por performance).
+
+### 8.1 Diagrama de Navegação
+
+```
+main.py
+  │
+  └─> run_intro() ─────────────────────────────────────┐
+        │ (animação automática)                        │
+        ▼                                              │
+      run_menu() ◄─────────────────────────────────────┤
+        │                                              │
+        ├─> "INICIAR" ──> jangada2.main() (gameplay)   │
+        │                     │                        │
+        │                     ├─> Vitória (5 peixes)   │
+        │                     │     │                  │
+        │                     │     └─> run_victory()  │
+        │                     │           │            │
+        │                     │           ├─> "JOGAR NOVAMENTE" ─┐
+        │                     │           └─> "SAIR" ──> exit    │
+        │                     │                                  │
+        │                     └─> Game Over (0 vidas)            │
+        │                           │                            │
+        │                           └─> run_game_over()          │
+        │                                 │                      │
+        │                                 ├─> "JOGAR NOVAMENTE" ─┘
+        │                                 └─> "SAIR" ──> exit
+        │
+        ├─> "COMO JOGAR" ──> run_instructions()
+        │                         │
+        │                         └─> "VOLTAR" ─┐
+        │                                       │
+        │◄──────────────────────────────────────┘
+        │
+        └─> "SAIR" / ESC ──> exit
+```
+
+---
+
+### 8.2 Tela de Introdução (`app/scenes/intro.py`)
+
+**Função principal:** `run_intro(tela)`
+
+**Descrição:**
+Animação inicial que mostra um jangadeiro caminhando em direção a uma jangada na praia. Após a animação, transiciona automaticamente para o menu principal.
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Céu | `fill()` | Fundo azul (performance) |
+| Mar | `scanline_fill()` | Polígono preenchido |
+| Areia | `scanline_fill()` | Polígono preenchido |
+| Sol | `draw_circle()` + `flood_fill_iterativo()` | Circunferência preenchida |
+| Ondas | `bresenham()` | Linhas horizontais paralelas |
+| Jangada | `scanline_fill()` + `desenhar_poligono()` | Polígono com contorno |
+| Jangadeiro (cabeça) | `draw_circle()` + `flood_fill_iterativo()` | Circunferência preenchida |
+| Jangadeiro (corpo) | `draw_line_clipped()` / `bresenham()` | Linhas com clipping Cohen-Sutherland |
+
+**Animações:**
+- **Jangadeiro:** Translação horizontal (`dx += vel_x`) e vertical (`dy += vel_y`) até atingir a jangada
+- **Jangada:** Oscilação horizontal via `sin(frame * frequencia) * amplitude`
+- **Transição:** Fade escuro com `Surface.set_alpha()` + elevação do mar (translação vertical)
+
+**Fluxo:**
+1. Animação executa automaticamente (60 FPS)
+2. Quando jangadeiro atinge a jangada → inicia transição
+3. Após fade completo → chama `run_menu(tela)`
+
+**Retorno:**
+- `"sair"` → Se usuário fechar a janela durante a animação
+
+---
+
+### 8.3 Tela de Menu (`app/scenes/menu.py`)
+
+**Função principal:** `run_menu(superficie)`
+
+**Descrição:**
+Menu principal do jogo com cenário decorativo (sol, horizonte) e três botões interativos.
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Céu | `fill()` | Fundo azul claro (performance) |
+| Sol | `draw_circle()` | Circunferência Midpoint |
+| Título | `draw_text()` | Fonte bitmap 5×7 via `set_pixel()` |
+| Botões | `scanline_fill()` + `desenhar_poligono()` + `draw_text()` | Polígono preenchido com borda e texto |
+
+**Botões e destinos:**
+
+| Botão | Posição (Y) | Retorno/Ação |
+|-------|-------------|--------------|
+| "INICIAR" | 45% da altura | Retorna `"iniciar"` → inicia gameplay |
+| "COMO JOGAR" | 45% + 70px | Chama `run_instructions()` (modal) |
+| "SAIR" | 45% + 140px | Retorna `"sair"` → encerra programa |
+
+**Detecção de clique:**
+- Algoritmo AABB via `ponto_em_retangulo(px, py, rx, ry, rw, rh)`
+- Evento: `pygame.MOUSEBUTTONDOWN` com `button == 1`
+
+**Retorno:**
+- `"iniciar"` → Usuário clicou em "INICIAR"
+- `"sair"` → Usuário clicou em "SAIR", pressionou ESC ou fechou janela
+
+---
+
+### 8.4 Tela de Instruções (`app/scenes/instructions.py`)
+
+**Função principal:** `run_instructions(superficie)`
+
+**Descrição:**
+Tela modal que exibe as instruções do jogo. Apresenta objetivo, controles e elementos decorativos.
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Fundo gradiente | Loop + `pygame.draw.line()` | Gradiente vertical (céu noturno) |
+| Ondas animadas | `bresenham()` + `sin()` | Linhas onduladas na parte inferior |
+| Peixinhos decorativos | `draw_circle()` | Círculos decorativos |
+| Título "COMO JOGAR" | `draw_text()` | Fonte bitmap 5×7 (scale=3) |
+| Caixas de instrução | `scanline_fill()` + `bresenham()` | Retângulos preenchidos com borda |
+| Texto das instruções | `draw_text()` | Fonte bitmap 5×7 (scale=2) |
+| Botão "VOLTAR" | `draw_button()` | Polígono com texto |
+
+**Conteúdo das instruções:**
+1. **OBJETIVO:** Coletar peixes e navegar, evitar pedras
+2. **CONTROLES:** W/A/S/D para mover, ESC para sair
+
+**Botão e destino:**
+
+| Botão | Ação |
+|-------|------|
+| "VOLTAR" | Retorna ao menu (`return`) |
+| ESC | Retorna ao menu |
+
+**Animações:**
+- Ondas na parte inferior oscilam via `sin((x + offset) * 0.05)`
+- Frame incrementa a cada ciclo para animar
+
+**Retorno:** Nenhum (função retorna `None`, voltando ao loop do menu)
+
+---
+
+### 8.5 Tela de Gameplay (`app/scenes/jangada2.py`)
+
+**Função principal:** `main()`
+
+**Descrição:**
+Tela principal de jogo onde o jogador controla a jangada, coleta peixes e evita obstáculos.
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Mar | `fill()` | Fundo azul (performance) |
+| Jangada (corpo) | `scanline_fill_gradiente()` | Gradiente marrom vertical |
+| Jangada (proa) | `scanline_fill_gradiente()` | Triângulo com gradiente |
+| Jangada (detalhes) | `bresenham()` / `draw_line()` | Linhas das tábuas |
+| Jangada (contorno) | `desenhar_poligono()` | Contorno Bresenham |
+| Peixe (corpo) | Loop + `interpolar_cor()` | Elipse com gradiente simétrico |
+| Peixe (cauda/barbatanas) | `scanline_fill_gradiente()` | Triângulos com gradiente |
+| Peixe (olho) | Loop circular | Círculo preto com centro branco |
+| Ondas ao redor do peixe | `bresenham()` + `sin()` | Círculos concêntricos ondulados |
+| Obstáculos (rochas) | Loop circular | Círculos cinza |
+| HUD - Ícone peixe | `draw_fish_icon()` | Elipse + triângulo pequenos |
+| HUD - Ícone coração | `draw_heart_icon()` | Equação paramétrica de coração |
+| HUD - Números | `draw_simple_text()` | Fonte bitmap 3×5 |
+| Minimapa | Loops + `set_pixel()` | Representação miniatura do mundo |
+
+**Controles:**
+
+| Tecla | Ação |
+|-------|------|
+| W | Move jangada para cima |
+| A | Move jangada para esquerda |
+| S | Move jangada para baixo |
+| D | Move jangada para direita |
+| ESC | Encerra o jogo |
+
+**Sistema de mundo:**
+- **Viewport (tela):** 1000×800 pixels
+- **Mundo:** 3000×3000 pixels
+- **Câmera:** Segue a jangada com centralização
+
+**Condições de término:**
+
+| Condição | Resultado | Próxima tela |
+|----------|-----------|--------------|
+| Coletar 5 peixes | `resultado = "VITORIA"` | `run_victory()` |
+| Perder 3 vidas | `resultado = "GAME OVER"` | `run_game_over()` |
+
+**Sistema de colisão:**
+- **Jangada × Peixe:** AABB → incrementa pontuação, reposiciona peixe
+- **Jangada × Obstáculo:** `check_collision_raft_obstacle()` → decrementa vida, rotaciona jangada
+
+---
+
+### 8.6 Tela de Vitória (`app/scenes/victory.py`)
+
+**Função principal:** `run_victory(superficie)`
+
+**Descrição:**
+Exibida quando o jogador coleta 5 peixes. Mostra mensagem de vitória e opções.
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Fundo | `fill()` | Azul claro (mesmo do menu) |
+| Mensagem "VOCE VENCEU" | `draw_text()` | Fonte bitmap 5×7 em verde |
+| Botões | `draw_button()` | Polígonos amarelos com texto |
+
+**Como chegar nesta tela:**
+1. Iniciar jogo pelo menu → "INICIAR"
+2. Durante gameplay, coletar 5 peixes
+3. Sistema detecta `pontos >= 5` → `resultado = "VITORIA"`
+4. Loop do gameplay termina → chama `run_victory(screen)`
+
+**Botões e destinos:**
+
+| Botão | Posição (Y) | Retorno |
+|-------|-------------|---------|
+| "JOGAR NOVAMENTE" | 52% da altura | `"jogar_novamente"` → reinicia gameplay |
+| "SAIR" | 52% + 70px | `"sair"` → encerra programa |
+
+**Paleta de cores:**
+- Fundo: `SKY = (135, 206, 235)` (azul claro)
+- Mensagem: `MESSAGE_COLOR = (50, 160, 80)` (verde)
+- Botões: Mesmo padrão do menu (amarelo/marrom)
+
+**Retorno:**
+- `"jogar_novamente"` → Volta ao início do loop em `jangada2.main()`, resetando estado
+- `"sair"` → Encerra o programa
+
+---
+
+### 8.7 Tela de Game Over (`app/scenes/game_over.py`)
+
+**Função principal:** `run_game_over(superficie)`
+
+**Descrição:**
+Exibida quando o jogador perde todas as 3 vidas (colidindo com obstáculos).
+
+**Elementos renderizados:**
+
+| Elemento | Algoritmo | Função |
+|----------|-----------|--------|
+| Fundo | `fill()` | Azul claro (mesmo do menu) |
+| Mensagem "VOCE PERDEU" | `draw_text()` | Fonte bitmap 5×7 em vermelho |
+| Botões | `draw_button()` | Polígonos amarelos com texto |
+
+**Como chegar nesta tela:**
+1. Iniciar jogo pelo menu → "INICIAR"
+2. Durante gameplay, colidir com 3 obstáculos (pedras)
+3. Sistema detecta `vidas <= 0` → `resultado = "GAME OVER"`
+4. Loop do gameplay termina → chama `run_game_over(screen)`
+
+**Botões e destinos:**
+
+| Botão | Posição (Y) | Retorno |
+|-------|-------------|---------|
+| "JOGAR NOVAMENTE" | 52% da altura | `"jogar_novamente"` → reinicia gameplay |
+| "SAIR" | 52% + 70px | `"sair"` → encerra programa |
+
+**Paleta de cores:**
+- Fundo: `SKY = (135, 206, 235)` (azul claro)
+- Mensagem: `MESSAGE_COLOR = (200, 50, 50)` (vermelho)
+- Botões: Mesmo padrão do menu (amarelo/marrom)
+
+**Retorno:**
+- `"jogar_novamente"` → Volta ao início do loop em `jangada2.main()`, resetando estado
+- `"sair"` → Encerra o programa
+
+---
+
+### 8.8 Funções Auxiliares Compartilhadas (`app/scenes/auxiliary_functions.py`)
+
+Funções reutilizadas por todas as telas para renderização consistente.
+
+#### `draw_text(surf, texto, x, y, cor, scale=2)`
+
+- **Descrição:** Renderiza texto usando fonte bitmap 5×7 via `set_pixel()`
+- **Parâmetros:**
+  - `surf`: superfície Pygame
+  - `texto`: string a renderizar
+  - `x`, `y`: posição inicial
+  - `cor`: tupla RGB
+  - `scale`: fator de escala (2 = cada pixel da fonte vira 2×2)
+- **Caracteres suportados:** A-Z, 0-9, espaço, ":", "-", "."
+
+#### `draw_button(surf, x, y, larg, alt, texto, cor_fundo, cor_borda, cor_texto)`
+
+- **Descrição:** Renderiza botão interativo com preenchimento, borda e texto centralizado
+- **Algoritmos utilizados:**
+  1. `scanline_fill()` → preenchimento do retângulo
+  2. `desenhar_poligono()` → contorno via Bresenham
+  3. `draw_text()` → texto centralizado
+
+#### `ponto_em_retangulo(px, py, rx, ry, rw, rh)`
+
+- **Descrição:** Teste AABB para detecção de clique em botões
+- **Retorno:** `True` se ponto `(px, py)` está dentro do retângulo
+
+---
+
+### 8.9 Resumo do Fluxo Completo
+
+```
+1. main.py inicia Pygame e chama run_intro()
+2. Animação de introdução → transição para run_menu()
+3. Menu:
+   ├── "INICIAR" → pygame.quit() + jangada2.main()
+   ├── "COMO JOGAR" → run_instructions() → retorna ao menu
+   └── "SAIR" → encerra programa
+
+4. Gameplay (jangada2.main()):
+   ├── Loop: controle WASD, coleta peixes, evita obstáculos
+   ├── 5 peixes coletados → run_victory()
+   │   ├── "JOGAR NOVAMENTE" → reinicia gameplay
+   │   └── "SAIR" → encerra
+   └── 0 vidas → run_game_over()
+       ├── "JOGAR NOVAMENTE" → reinicia gameplay
+       └── "SAIR" → encerra
+```
+
+---
+
+### 8.10 Paleta de Cores Global
+
+| Cor | RGB | Uso |
+|-----|-----|-----|
+| `SKY` | `(135, 206, 235)` | Fundo do menu, vitória, game over |
+| `SEA_COLOR` | `(0, 120, 170)` | Mar no gameplay |
+| `SUN` | `(255, 204, 92)` | Sol, botões |
+| `WAVE` | `(90, 180, 200)` | Ondas decorativas |
+| `BTN_FILL` | `(255, 204, 92)` | Preenchimento de botões |
+| `BTN_BORDER` | `(180, 140, 50)` | Borda de botões |
+| `BTN_TEXT` | `(60, 50, 40)` | Texto de botões |
+| `MESSAGE_COLOR` (vitória) | `(50, 160, 80)` | Verde para sucesso |
+| `MESSAGE_COLOR` (derrota) | `(200, 50, 50)` | Vermelho para falha |
